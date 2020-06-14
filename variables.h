@@ -22,9 +22,9 @@
 #define _VARIABLES_HEADER_
 
 #define FOX_RECOVERY_NAME	"OrangeFox"
-#define FOX_CURRENT_DEV_STR 	"2020.05.18"
-#define FOX_MAIN_VERSION_STR    "R10.1"
-#define TW_MAIN_VERSION_STR     "3.3.1"
+#define FOX_CURRENT_DEV_STR 	"2020.06.06"
+#define FOX_MAIN_VERSION_STR    "R10.2"
+#define TW_MAIN_VERSION_STR     "3.3.9"
 #define TW_VERSION_STR 		FOX_VERSION
 #define BUILD_TYPE_STR 		FOX_BUILD_TYPE
 
@@ -263,6 +263,7 @@ static int Fox_Current_ROM_IsMIUI = 0; // is the currently installed ROM a MIUI 
 #define TW_MILITARY_TIME            "tw_military_time"
 #define TW_USE_SHA2                 "tw_use_sha2"
 #define TW_NO_SHA2                  "tw_no_sha2"
+#define TW_UNMOUNT_SYSTEM           "tw_unmount_system"
 
 // Also used:
 //   tw_boot_is_mountable

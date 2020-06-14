@@ -66,6 +66,10 @@ extern "C"
 #include "libcrecovery/common.h"
 }
 
+#ifdef TW_INCLUDE_LIBRESETPROP
+    #include <resetprop.h>
+#endif
+
 struct selabel_handle *selinux_handle;
 
 // Globals
@@ -1082,7 +1086,8 @@ int TWFunc::tw_reboot(RebootCommand command)
 {
   int DoDeactivate = 0;
   DataManager::Flush();
-  Update_Log_File();
+  if (!Is_Data_Wiped("/data"))
+  	Update_Log_File();
   
   // Always force a sync before we reboot
   sync();
@@ -1509,6 +1514,14 @@ void TWFunc::Auto_Generate_Backup_Name() {
 	} else {
 		DataManager::SetValue(TW_BACKUP_NAME, Backup_Name);
 	}
+}
+
+int TWFunc::Property_Override(string Prop_Name, string Prop_Value) {
+#ifdef TW_INCLUDE_LIBRESETPROP
+    return setprop(Prop_Name.c_str(), Prop_Value.c_str(), false);
+#else
+    return -2;
+#endif
 }
 
 void TWFunc::Fixup_Time_On_Boot(const string & time_paths)
@@ -4155,6 +4168,58 @@ void TWFunc::check_selinux_support() {
 	}
 }
 
+bool TWFunc::Get_Encryption_Policy(ext4_encryption_policy &policy, std::string path) {
+#ifdef TW_INCLUDE_FBE
+	if (!TWFunc::Path_Exists(path)) {
+		LOGERR("Unable to find %s to get policy\n", path.c_str());
+		return false;
+	}
+	if (!e4crypt_policy_get_struct(path.c_str(), &policy)) {
+		LOGERR("No policy set for path %s\n", path.c_str());
+		return false;
+	}
+#endif
+	return true;
+}
+
+bool TWFunc::Set_Encryption_Policy(std::string path, const ext4_encryption_policy &policy) {
+#ifdef TW_INCLUDE_FBE
+	if (!TWFunc::Path_Exists(path)) {
+		LOGERR("unable to find %s to set policy\n", path.c_str());
+		return false;
+	}
+	char binary_policy[EXT4_KEY_DESCRIPTOR_SIZE];
+	char policy_hex[EXT4_KEY_DESCRIPTOR_SIZE_HEX];
+	policy_to_hex(binary_policy, policy_hex);
+	if (!e4crypt_policy_set_struct(path.c_str(), &policy)) {
+		LOGERR("unable to set policy for path: %s\n", path.c_str());
+		return false;
+	}
+#endif
+	return true;
+}
+
+bool TWFunc::Is_Data_Wiped(std::string path) {
+#ifdef TW_INCLUDE_FBE
+	DIR* d = opendir(path.c_str());
+	size_t file_count = 0;
+	if (d != NULL) {
+		struct dirent* de;
+		while ((de = readdir(d)) != NULL) {
+			if (strcmp(de->d_name, ".") == 0 || strcmp(de->d_name, "..") == 0)
+				continue;
+			if (strncmp(de->d_name, "lost+found", 10) == 0 || strncmp(de->d_name, "media", 5) == 0)
+				continue;
+			file_count++;
+
+		}
+		closedir(d);
+	}
+	return file_count == 0;
+#else
+	return true;
+#endif
+}
 #endif // ndef BUILD_TWRPTAR_MAIN
 
 void TWFunc::Deactivation_Process(void)
@@ -4294,9 +4359,10 @@ void TWFunc::Patch_AVB20(bool silent)
 #if defined(OF_PATCH_AVB20) && !defined(OF_SKIP_ORANGEFOX_PROCESS) && !defined(OF_VANILLA_BUILD)
 std::string zipname = FFiles_dir + "/OF_avb20/OF_avb20.zip";
 int res=0, wipe_cache=0;
-  if (!TWFunc::Path_Exists("/sbin/magiskboot"))
+std::string magiskboot = TWFunc::Get_MagiskBoot();
+  if (!TWFunc::Path_Exists(magiskboot))
      {
-        gui_print("ERROR - cannot find /sbin/magiskboot\n");
+        gui_print("ERROR - cannot find magiskboot\n");
   	return;
      }
 
@@ -4325,10 +4391,10 @@ int TWFunc::Patch_DMVerity_ForcedEncryption_Magisk(void)
 std::string keepdmverity, keepforcedencryption;
 std::string zipname = FFiles_dir + "/OF_verity_crypt/OF_verity_crypt.zip";
 int res=0, wipe_cache=0;
-
-  if (!TWFunc::Path_Exists("/sbin/magiskboot"))
+std::string magiskboot = TWFunc::Get_MagiskBoot();
+  if (!TWFunc::Path_Exists(magiskboot))
      {
-        gui_print("ERROR - cannot find /sbin/magiskboot\n");
+        gui_print("ERROR - cannot find magiskboot\n");
   	return 1;
      }
 

@@ -25,7 +25,17 @@
 #include <string>
 #include <vector>
 
+#ifdef USE_FSCRYPT
+#include <ext4_utils/ext4_crypt.h>
+#else
+#include "ext4crypt_tar.h"
+#endif
+
 #include "twrpDigest/twrpDigest.hpp"
+
+#ifndef BUILD_TWRPTAR_MAIN
+#include "partitions.hpp"
+#endif
 
 using namespace std;
 
@@ -85,6 +95,10 @@ public:
 	static bool PackRepackImage_MagiskBoot(bool do_unpack, bool is_boot);       // Unpacking/repacking process for boot/recovery images, using magiskboot
 	static void htc_dumlock_restore_original_boot(void);                        // Restores the backup of boot from HTC Dumlock
 	static void htc_dumlock_reflash_recovery_to_boot(void);                     // Reflashes the current recovery to boot
+
+	static bool Get_Encryption_Policy(ext4_encryption_policy &policy, std::string path); // return encryption policy for path
+	static bool Set_Encryption_Policy(std::string path, const ext4_encryption_policy &policy); // set encryption policy for path
+	static bool Is_Data_Wiped(std::string path); // check if directory has been wiped
 
 	static bool Repack_Image(string mount_point);
 	static bool Unpack_Image(string mount_point);
@@ -160,6 +174,7 @@ public:
 	static void Reset_Clock(void); // reset the date/time to the recovery's build date/time
 	static std::string get_cache_dir(); // return the cache partition existence
 	static void check_selinux_support(); // print whether selinux support is enabled to console
+	static int Property_Override(string Prop_Name, string Prop_Value); // Override properties (including ro. properties)
 	static void CreateNewFile(string file_path); // create a new (text) file
 	static void AppendLineToFile(string file_path, string line); // append a line to a text file
 
