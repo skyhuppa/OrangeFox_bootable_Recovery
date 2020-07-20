@@ -135,6 +135,7 @@ enum TW_FSTAB_FLAGS {
 	TWFLAG_ANDSEC,
 	TWFLAG_BACKUP,
 	TWFLAG_BACKUPNAME,
+	TWFLAG_ADVBACKUP,
 	TWFLAG_BLOCKSIZE,
 	TWFLAG_CANBEWIPED,
 	TWFLAG_CANENCRYPTBACKUP,
@@ -178,6 +179,7 @@ enum TW_FSTAB_FLAGS {
 const struct flag_list tw_flags[] = {
 	{ "andsec",                 TWFLAG_ANDSEC },
 	{ "backup",                 TWFLAG_BACKUP },
+	{ "advbackup",              TWFLAG_ADVBACKUP },
 	{ "backupname=",            TWFLAG_BACKUPNAME },
 	{ "blocksize=",             TWFLAG_BLOCKSIZE },
 	{ "canbewiped",             TWFLAG_CANBEWIPED },
@@ -221,6 +223,7 @@ TWPartition::TWPartition() {
 	Can_Be_Mounted = false;
 	Can_Be_Wiped = false;
 	Can_Be_Backed_Up = false;
+	Can_Be_Adv_Backed_Up = false;
 	Use_Rm_Rf = false;
 	Wipe_During_Factory_Reset = false;
 	Wipe_Available_in_GUI = false;
@@ -610,6 +613,7 @@ bool TWPartition::Process_Fstab_Line(const char *fstab_line, bool Display_Error,
 		if (mounted || Mount(false)) {
 			// Read the backup settings file
 			DataManager::LoadPersistValues();
+			DataManager::FindPasswordBackup();
 			TWFunc::Fixup_Time_On_Boot("/persist/time/");
 			if (!mounted)
 				UnMount(false);
@@ -709,7 +713,6 @@ void TWPartition::Setup_Data_Partition(bool Display_Error) {
 					LOGINFO("Device not encrypted/Unable to decrypt FBE device\n");
 				}
 			}
-			
 		}
 	}
 	if (datamedia && (!Is_Encrypted || (Is_Encrypted && Is_Decrypted))) {
@@ -736,23 +739,25 @@ if (TWFunc::Path_Exists("/data/unencrypted/key/version")) {
 		DataManager::SetValue(TW_IS_FBE, 1);
 		ExcludeAll(Mount_Point + "/convert_fbe");
 		ExcludeAll(Mount_Point + "/unencrypted");
-		//ExcludeAll(Mount_Point + "/system/users/0"); // we WILL need to retain some of this if multiple users are present or we just need to delete more folders for the extra users somewhere else
 		ExcludeAll(Mount_Point + "/misc/vold/user_keys");
-		//ExcludeAll(Mount_Point + "/system_ce");
-		//ExcludeAll(Mount_Point + "/system_de");
-		//ExcludeAll(Mount_Point + "/misc_ce");
-		//ExcludeAll(Mount_Point + "/misc_de");
+		//ExcludeAll(Mount_Point + "/system/users/0"); // we WILL need to retain some of this if multiple users are present or we just need to delete more folders for the extra users somewhere else
+		ExcludeAll(Mount_Point + "/system/users/0/gatekeeper.password.key");
+		ExcludeAll(Mount_Point + "/system/users/0/gatekeeper.pattern.key");
 		ExcludeAll(Mount_Point + "/system/gatekeeper.password.key");
 		ExcludeAll(Mount_Point + "/system/gatekeeper.pattern.key");
-		ExcludeAll(Mount_Point + "/system/locksettings.db");
 		//ExcludeAll(Mount_Point + "/system/locksettings.db-shm"); // don't seem to need this one, but the other 2 are needed
+		ExcludeAll(Mount_Point + "/system/locksettings.db");
 		ExcludeAll(Mount_Point + "/system/locksettings.db-wal");
-		//ExcludeAll(Mount_Point + "/user_de");
-		//ExcludeAll(Mount_Point + "/misc/profiles/cur/0"); // might be important later
 		ExcludeAll(Mount_Point + "/misc/gatekeeper");
 		ExcludeAll(Mount_Point + "/misc/keystore");
 		ExcludeAll(Mount_Point + "/drm/kek.dat");
 		ExcludeAll(Mount_Point + "/system_de/0/spblob"); // contains data needed to decrypt pixel 2
+		//ExcludeAll(Mount_Point + "/system_ce");
+		//ExcludeAll(Mount_Point + "/system_de");
+		//ExcludeAll(Mount_Point + "/misc_ce");
+		//ExcludeAll(Mount_Point + "/misc_de");
+		//ExcludeAll(Mount_Point + "/user_de");
+		//ExcludeAll(Mount_Point + "/misc/profiles/cur/0"); // might be important later
 		int retry_count = 3;
 		while (!Decrypt_DE() && --retry_count)
 			usleep(2000);
@@ -767,6 +772,7 @@ if (TWFunc::Path_Exists("/data/unencrypted/key/version")) {
 				LOGERR("This TWRP does not have synthetic password decrypt support\n");
 				pwd_type = 0; // default password
 			}
+			TWPartition::Fox_Add_Backup_Exclusions();
 			DataManager::SetValue(TW_CRYPTO_PWTYPE, pwd_type);
 			DataManager::SetValue(TW_CRYPTO_PASSWORD, "");
 			DataManager::SetValue("tw_crypto_display", "");
@@ -863,6 +869,9 @@ void TWPartition::Apply_TW_Flag(const unsigned flag, const char* str, const bool
 			break;
 		case TWFLAG_BACKUPNAME:
 			Backup_Display_Name = str;
+			break;
+		case TWFLAG_ADVBACKUP:
+			Can_Be_Adv_Backed_Up = val;
 			break;
 		case TWFLAG_BLOCKSIZE:
 			Format_Block_Size = (unsigned long)(atol(str));
@@ -1178,11 +1187,9 @@ void TWPartition::Setup_Data_Media() {
 		DataManager::SetValue("tw_has_internal", 1);
 		DataManager::SetValue("tw_has_data_media", 1);
 		backup_exclusions.add_absolute_dir("/data/data/com.google.android.music/files");
-
-		// DJ9, 18Jan2020 - implement the OrangeFox Backup Exclusions
-		TWPartition::Fox_Add_Backup_Exclusions();
-		// end:  OrangeFox Backup Exclusions
-
+		backup_exclusions.add_absolute_dir("/data/per_boot"); // DJ9,14Jan2020 - exclude this dir to prevent "error 255" on AOSP ROMs that create and lock it
+		backup_exclusions.add_absolute_dir("/data/extm"); // DJ9,5July2020 - exclude this dir to prevent "error 255" on MIUI 12 ROMs
+		backup_exclusions.add_absolute_dir("/data/cache");
 		wipe_exclusions.add_absolute_dir(Mount_Point + "/misc/vold"); // adopted storage keys
 		ExcludeAll(Mount_Point + "/.layout_version");
 		ExcludeAll(Mount_Point + "/system/storage.xml");
@@ -1660,11 +1667,6 @@ bool TWPartition::Wipe(string New_File_System) {
 	bool wiped = false, update_crypt = false, recreate_media = true;
 	int check;
 	string Layout_Filename = Mount_Point + "/.layout_version";
-	ext4_encryption_policy policy;
-
-	if (Mount_Point == "/data" && TWFunc::get_cache_dir() == AB_CACHE_DIR && Is_Decrypted) {
-		TWFunc::Get_Encryption_Policy(policy, AB_CACHE_DIR);
-	}
 
 	if (!Can_Be_Wiped) {
 		gui_msg(Msg(msg::kError, "cannot_wipe=Partition {1} cannot be wiped.")(Display_Name));
@@ -1681,10 +1683,11 @@ bool TWPartition::Wipe(string New_File_System) {
 
 	if (Has_Data_Media && Current_File_System == New_File_System) {
 		wiped = Wipe_Data_Without_Wiping_Media();
-		if (Mount_Point == "/data" && TWFunc::get_cache_dir() == AB_CACHE_DIR) {
-			bool created = Recreate_AB_Cache_Dir(policy);
-			if (created)
-				gui_msg(Msg(msg::kWarning, "fbe_wipe_msg=WARNING: {1} wiped. FBE device should be booted into Android and not Recovery to set initial FBE policy after wipe.")(TWFunc::get_cache_dir()));
+
+		if (Mount_Point == "/data" && TWFunc::get_log_dir() == DATA_LOGS_DIR) {
+			bool created = Recreate_Logs_Dir();
+			if (!created)
+				LOGERR("Unable to create log directory\n");
 		}
 		recreate_media = false;
 	} else {
@@ -1720,6 +1723,9 @@ bool TWPartition::Wipe(string New_File_System) {
 	}
 
 	if (wiped) {
+		if (Mount_Point == "/cache" && TWFunc::get_log_dir() != DATA_LOGS_DIR)
+			DataManager::Output_Version();
+
 		if (TWFunc::Path_Exists("/.layout_version") && Mount(false))
 			TWFunc::copy_file("/.layout_version", Layout_Filename, 0600);
 
@@ -2055,10 +2061,7 @@ bool TWPartition::Wipe_Encryption() {
 		}
 		DataManager::SetValue(TW_IS_ENCRYPTED, 0);
 #ifndef TW_OEM_BUILD
-		if (Is_FBE)
-			gui_msg(Msg(msg::kWarning, "fbe_wipe_msg=WARNING: {1} wiped. FBE device should be booted into Android and not Recovery to set initial FBE policy after wipe.")(TWFunc::get_cache_dir()));
-		else
-			gui_msg("format_data_msg=You may need to reboot recovery to be able to use /data again.");
+		gui_msg("format_data_msg=You may need to reboot recovery to be able to use /data again.");
 #endif
 		ret = true;
 		if (!Key_Directory.empty())
@@ -2489,7 +2492,7 @@ bool TWPartition::Wipe_Data_Without_Wiping_Media() {
 #endif // ifdef TW_OEM_BUILD
 }
 
-bool TWPartition::Recreate_AB_Cache_Dir(const ext4_encryption_policy &policy) {
+bool TWPartition::Recreate_Logs_Dir() {
 #ifdef TW_INCLUDE_FBE
 	struct passwd pd;
 	struct passwd *pwdptr = &pd;
@@ -2512,30 +2515,15 @@ bool TWPartition::Recreate_AB_Cache_Dir(const ext4_encryption_policy &policy) {
 		} else {
 			uid = pd.pw_uid;
 			gid = grp.gr_gid;
+			std::string abLogsRecoveryDir(DATA_LOGS_DIR);
+			abLogsRecoveryDir += "/recovery/";
 
-			if (!TWFunc::Create_Dir_Recursive(AB_CACHE_DIR, S_IRWXU | S_IRWXG | S_IWGRP | S_IXGRP, uid, gid)) {
-				LOGERR("Unable to recreate %s\n", AB_CACHE_DIR);
+			if (!TWFunc::Create_Dir_Recursive(abLogsRecoveryDir, S_IRWXU | S_IRWXG | S_IWGRP | S_IXGRP, uid, gid)) {
+				LOGERR("Unable to recreate %s\n", abLogsRecoveryDir.c_str());
 				return false;
 			}
-			if (setfilecon(AB_CACHE_DIR, "u:object_r:cache_file:s0") != 0) {	
-				LOGERR("Unable to set contexts for %s\n", AB_CACHE_DIR);
-				return false;
-			}
-			char policy_hex[EXT4_KEY_DESCRIPTOR_SIZE_HEX];
-			policy_to_hex(policy.master_key_descriptor, policy_hex);
-			LOGINFO("setting policy for %s: %s\n", policy_hex, AB_CACHE_DIR);
-			if (sizeof(policy.master_key_descriptor) > 0) {
-				if (!TWFunc::Set_Encryption_Policy(AB_CACHE_DIR, policy)) {
-					LOGERR("Unable to set encryption policy for %s\n", AB_CACHE_DIR);
-					LOGINFO("Removing %s\n", AB_CACHE_DIR);
-					int ret = TWFunc::removeDir(AB_CACHE_DIR, true);
-					if (ret == -1) {
-						LOGERR("Unable to remove %s\n", AB_CACHE_DIR);
-					}
-					return false;
-				}
-			} else {
-				LOGERR("Not setting empty policy to %s\n", AB_CACHE_DIR);
+			if (setfilecon(abLogsRecoveryDir.c_str(), "u:object_r:cache_file:s0") != 0) {
+				LOGERR("Unable to set contexts for %s\n", abLogsRecoveryDir.c_str());
 				return false;
 			}
 		}
@@ -3486,17 +3474,19 @@ string TWPartition::Get_Backup_Name() {
 }
 
 void TWPartition::Fox_Add_Backup_Exclusions() {
-   backup_exclusions.add_absolute_dir("/data/per_boot");
-
-   // avoid parallel/dual apps or multi-user backup issues
-   #if defined(TW_INCLUDE_FBE) && defined(OF_SKIP_MULTIUSER_FOLDERS_BACKUP)
-   //if (DataManager::GetIntValue(TW_IS_FBE) == 1) {
-	int Users[2] = {10,999};
+#if defined(TW_INCLUDE_FBE) && defined(OF_SKIP_MULTIUSER_FOLDERS_BACKUP)
+  if (DataManager::GetIntValue(TW_IS_FBE) == 1) 
+    {
+	const int num = 3;
+	int Users[num] = {10,11,999};
 	int i;
 	string user;
-	for (i=0; i<=1; i++)
-	    {
-   	   	user = TWFunc::to_string(Users[i]);
+	for (i=0; i < num; i++)
+	  {
+   	     user = TWFunc::to_string(Users[i]);
+   	     if (TWFunc::Path_Exists("/data/media/" + user) || TWFunc::Path_Exists("/data/user/" + user)) 
+   	      {
+   	   	//LOGINFO("- Avoiding parallel/dual apps/multi-user backup issues for user %i\n", Users[i]);
    	   	backup_exclusions.add_absolute_dir("/data/media/" + user);
    	   	backup_exclusions.add_absolute_dir("/data/user/" + user);
    	   	backup_exclusions.add_absolute_dir("/data/misc/user/" + user);
@@ -3512,7 +3502,12 @@ void TWPartition::Fox_Add_Backup_Exclusions() {
    	   	backup_exclusions.add_absolute_dir("/data/system_de/" + user);
    	   	backup_exclusions.add_absolute_dir("/data/user_de/" + user);
    	   	backup_exclusions.add_absolute_dir("/data/misc_de/" + user);
-	   }
-     //}
-   #endif
+
+		// system/users/x
+   	   	backup_exclusions.add_absolute_dir("/data/system/users/" + user);
+   	     }
+   	     //else LOGINFO("- User %i does not exist ...\n", Users[i]);
+	 }
+    }
+ #endif
 }

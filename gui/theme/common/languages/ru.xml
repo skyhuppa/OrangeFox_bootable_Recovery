@@ -38,7 +38,7 @@
 		<string name="sort_by_size_desc">Размер</string>
 		<string name="install_btn">Установка</string>
 		<string name="wipe_btn">Очистка</string>
-		<string name="backup_btn">Копия</string>
+		<string name="backup_btn">Копии</string>
 		<string name="restore_btn">Восстановление</string>
 		<string name="mount_btn">Монтирование</string>
 		<string name="settings_btn">Настройки</string>
@@ -329,12 +329,12 @@
 		<string name="screen_bright_slider">Яркость: %tw_brightness_pct%%</string>
 		<string name="screen_bright_na">Установка яркости недоступна</string>
 		<string name="vibration_hdr">Вибрация</string>
-		<string name="button_vibration_hdr">Вибрация при нажатии кнопок отключена</string>
-		<string name="kb_vibration_hdr">Вибрация при работе с клавиатурой отключена</string>
-		<string name="act_vibration_hdr">Вибрация при выборе действия отключена</string>
-		<string name="button_vibration">Вибрация при нажатии кнопок:</string>
-		<string name="kb_vibration">Вибрация при работе с клавиатурой:</string>
-		<string name="act_vibration">Вибрация при завершении действия:</string>
+		<string name="button_vibration_hdr">Вибрация кнопок отключена</string>
+		<string name="kb_vibration_hdr">Вибрация клавиатуры отключена</string>
+		<string name="act_vibration_hdr">Вибрация действия отключена</string>
+		<string name="button_vibration">Вибрация кнопок:</string>
+		<string name="kb_vibration">Вибрация клавиатуры:</string>
+		<string name="act_vibration">Вибрация действия:</string>
 		<string name="select_language">Выбор языка:</string>
 		<string name="sel_lang_btn">Выбор языка</string>
 		<string name="set_language_btn">Установить язык</string>
@@ -504,7 +504,7 @@
 		<string name="unable_to_mount_storage">Не удается смонтировать накопитель</string>
 		<string name="fail_decrypt">Не удается расшифровать Data.</string>
 		<string name="no_crypto_support">Шифрование не добавлено в эту сборки, пинайте разработчика.</string>
-		<string name="decrypt_success_dev">Data успешно расшифрован, новое блочное устройство: '{1}'</string>
+		<string name="decrypt_success_dev">Data успешно расшифрована, новое блочное устройство: '{1}'</string>
 		<string name="done">Готово</string>
 		<string name="start_partition_sd">Разметка SD-карты...</string>
 		<string name="partition_sd_locate">Не удалось найти устройство для разметки.</string>
@@ -712,7 +712,7 @@
 		<string name="dumlock_note2">на сайте:</string>
 		<string name="decrypt">Расшифровка</string>
 		<string name="data_part">Раздел зашифрован</string>
-		<string name="encrypt_data_part">Выбранный раздел зашифрован.</string>
+		<string name="encrypt_data_part">Ваши данные зашифрованы</string>
 		<string name="sel_encrypt_backup">Резервная копия зашифрована.</string>
 		<string name="decrypt_data_enter_note1">Введите пароль или нажмите</string>
 		<string name="decrypt_data_enter_note1a">Введите шаблон или нажмите</string>
@@ -913,6 +913,9 @@
 		<string name="mm_modules">Модули</string>
 		<string name="mm_ver">Версия Magisk</string>
 		<string name="mm_mod_ver">Версия модуля</string>
+		<string name="mm_remove">Удалить модуль при следующей загрузке</string>
+		<string name="mm_remove_hint">Перезагрузитесь для удаления</string>
+		<string name="mm_remove_reboot">Продолжить</string>
 		<string name="magisk_not_found">Magisk не найден!</string>
 		<string name="magisk_not_found_1">Хотите ли вы перейти в</string>
 		<string name="magisk_not_found_2">"Дополнения OrangeFox" и</string>
@@ -1010,7 +1013,7 @@
 
 		<!-- Files -->
 		<string name="files_show_hidden">Показывать скрытые файлы</string>
-		<string name="files_auto_open">Автооткрытие поддерживаемых файлов</string>
+		<string name="files_auto_open">Автооткрытие файлов</string>
 		<string name="file_read_error">Невозможно открыть файл!</string>
 		<string name="sort_ex_all">Все файлы</string>
 		<string name="sort_ex_img">IMG файлы</string>
@@ -1030,7 +1033,7 @@
 		<string name="abt_maintainer">Сопровождающий</string>
 		<string name="abt_fd">Дизайнер и создатель темы</string>
 		<string name="abt_bork">CEO, сайт и UI</string>
-		<string name="abt_dj">Сборка системы, C++</string>
+		<string name="abt_dj">C++, золотой сопровождающий</string>
 		<string name="abt_device">Устройство</string>
 		<string name="abt_front">Frontend разработчик</string>
 		<string name="abt_back">Backend разработчик</string>
@@ -1109,5 +1112,136 @@
 		<!-- Wipe format moved -->
 		<string name="wipe_format_moved_info1">Функция форматирования data</string>
 		<string name="wipe_format_moved_info2">перемещена в "Управление разделами".</string>
+
+		<!-- R11 -->
+		<string name="gst_title">Жесты</string>
+		<string name="gst_enable_all">Включить жесты</string>
+		<string name="gst_back">Жест "назад"</string>
+		<string name="gst_back_left">Слева</string>
+		<string name="gst_back_right">Справа</string>
+		<string name="gst_console_enable">Открыть консоль, проведя сверху вниз</string>
+		<string name="gst_navbar_error">Некоторые настройки недоступны.</string>
+		<string name="gst_navbar_error_2">Отключите жесты, чтобы показать их.</string>
+
+		<string name="unmount_sys_install">Размонтировать /system до установки</string>
+		<string name="unmount_system">Размонтирование /system...</string>
+		<string name="unmount_system_err">Ошибка размонтирования /system</string>		
+		<string name="fbe_wipe_msg">ВНИМАНИЕ: {1} очищен. Устройство FBE должно быть перезагружено в Android, а не в рекавери, чтобы задать изначальные политики FBE после очистки.</string>
+		
+		<string name="in">в</string>
+		<string name="con_digest_start">[СОЗДАНИЕ КОНТРОЛЬНЫХ СУММ НАЧАТО]</string>
+		<string name="con_digest_error">Список разделов пуст!</string>
+		<string name="con_digest_cancel">Отмана...</string>
+		<string name="con_digest_complete">[СОЗДАНИЕ КОНТРОЛЬНЫХ СУММ ЗАВЕРШЕНО ЗА {1} СЕКУНД]</string>
+		<string name="digest_btn">Создать суммы</string>
+		<string name="digest_creating">Создание контрольных сумм...</string>
+		
+		<!-- 124/14354 files, 20/5412MB (5%)  -->
+		<string name="file_progress_v2">%llu/%llu файлов,</string>
+		<string name="size_progress_v2">%llu/%llu MБ (%i%%)</string>
+
+		<string name="navpan_new_design">Новый дизайн панели переходов</string>
+		<string name="full_partition_list">Показать больше разделов для р.к.</string>
+
+		<string name="data_decrypted_reload">Успешно расшифровано!</string>
+
+		<string name="install_queue_magisk_btn">Добавить Magisk</string>
+
+		<string name="hint_ffiles_missing">Что-то потеряли?</string>
+		<string name="hint_ffiles_missing1">Файлы недоступны</string>
+		<string name="hint_ffiles_missing2">Файлы OrangeFox недоступны</string>
+		<string name="hint_ffiles_missing3">Попробуйте смонтировать /data</string>
+		<string name="hint_ffiles_missing4">или переустановить OrangeFox,</string>
+		<string name="hint_ffiles_missing5">если вы форматировали /data.</string>
+		<string name="hide_btn">Скрыть</string>
+
+		<string name="info_dir_empty">Папка пуста</string>
+		<string name="info_dir_empty_hidden">Некоторые файлы скрыты</string>
+
+		<string name="navbar_style_line">Линия</string>
+		<string name="accent_in_titles">Акцент в заголовке</string>
+
+		<string name="mbyte">МБ</string>
+		<string name="backup_exp_size">Ожидаемый размер</string>
+		<string name="time_minute">мин.</string>
+
+		<string name="backup_quick_info1">Эти разделы будут выбраны при</string>
+		<string name="backup_quick_info2">нажатии на кнопку "Быстрая копия"</string>
+		<string name="mbytesec">МБ/с</string>
+		<string name="backup_av_files">Файл</string>
+		<string name="backup_av_img">Образ</string>
+		<string name="backup_av">Подсчет времени</string>
+		<string name="backup_av1">Вы хотите сбросить скорости</string>
+		<string name="backup_av2">на значения по умолчанию?</string>
+		<string name="backup_av3">Время будет менее точным.</string>
+
+		<string name="cust_line_white">Использовать белую линию</string>
+		<string name="cust_line_gray">Использовать серую линию</string>
+
+		<!-- Updated slot selection -->
+		<string name="slot_show">Переключить слот</string>
+		<string name="slot_switch_a">Переключить на слот A</string>
+		<string name="slot_switch_b">Переключить на слот B</string>
+		<string name="slot_active_a">Слот A активен</string>
+		<string name="slot_active_b">Слот B активен</string>
+
+		<string name="theme_font_primary_tab">Текст</string>
+		<string name="theme_font_secondary_tab">Заголовки</string>
+		<string name="theme_font_size_tab">Размер</string>
+		<string name="theme_font_select">Выберите шрифт</string>
+
+		<string name="theme_fweight">Вид шрифта</string>
+		<string name="theme_fweight_norm">Стандартный</string>
+		<string name="theme_fweight_reg">Обычный</string>
+		<string name="theme_fweight_med">Жирный</string>
+
+		<string name="swipe_up_to_unlock">Проведите снизу вверх для разблокировки</string>
+
+		<string name="spl_background">Цвет фона</string>
+		<string name="spl_logo">Логотип</string>
+		<string name="spl_white">Белый</string>
+		<string name="spl_black">Черный</string>
+		<string name="spl_night">Ночной</string>
+		<string name="spl_orange">Оранжевый</string>
+		<string name="spl_accent">Акцент</string>
+		<string name="spl_image">Изображение</string>
+		<string name="spl_del_img">Убрать изображение</string>
+		<string name="hidden">Скрыт</string>
+		<string name="spl_ofr">Надпись "OrangeFox Recovery"</string>
+
+		<string name="batch_selected">Выбрано: %of_batch_count%</string>
+		<string name="batch_title">Пакетные действия</string>
+		<string name="batch_files_folders">Файлы и папки</string>
+		
+		<string name="fm_action_folder">Действия над этой папкой</string>
+
+		<string name="tap_to_generate">Нажмите здесь, чтобы вычислить</string>
+		<string name="calc_checksum">Вычисление...</string>
+		<string name="cant_access_data">Невозможно получить доступ к /data</string>
+
+		<string name="backup_pass_wait">Изменение пароля...</string>
+		<string name="pass_encrypt_error1">Расшифруйте /data</string>
+		<string name="pass_encrypt_error2">для изменения пароля!</string>
+
+		<string name="backup_encrypt_data_info">Будет зашифрован только раздел /data</string>
+
+		<!-- Missing functions from TWRP -->
+		<string name="img_advanced">Прошить ядро</string>
+		<string name="img_type">Тип образа</string>
+		<string name="img_select_type">Выберите тип образа</string>
+
+		<string name="repack_backup_first">Сделать резервную копию образа</string>
+
+		<string name="unpack_error">Ошибка распаковки образа.</string>
+		<string name="repack_error">Ошибка перепаковки образа.</string>
+		<string name="unpacking_image">Распаковка {1}...</string>
+		<string name="repacking_image">Перепаковка {1}...</string>
+		
+		<string name="fix_recovery_loop">Исправить bootloop</string>
+		<string name="fix_recovery_loop_confirm">Исправить Bootloop</string>
+		<string name="fixing_recovery_loop">Исправление Bootloop'a...</string>
+		<string name="fix_recovery_loop_complete">Исправление Bootloop'a завершено</string>
+		<string name="fixing_recovery_loop_patch">Исправление ядра...</string>
+		<string name="fix_recovery_loop_patch_error">Ошибка исправления ядра.</string>
 	</resources>
 </language>

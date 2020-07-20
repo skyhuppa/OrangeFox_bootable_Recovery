@@ -456,6 +456,8 @@ void TWPartitionManager::Output_Partition(TWPartition * Part)
 		printf("Use_Rm_Rf ");
 	if (Part->Can_Be_Backed_Up)
 		printf("Can_Be_Backed_Up ");
+	if (Part->Can_Be_Adv_Backed_Up)
+		printf("Can_Be_Adv_Backed_Up ");
 	if (Part->Wipe_During_Factory_Reset)
 		printf("Wipe_During_Factory_Reset ");
 	if (Part->Wipe_Available_in_GUI)
@@ -787,10 +789,14 @@ bool TWPartitionManager::Backup_Partition(PartitionSettings * part_settings)
       string Full_Filename =
 	part_settings->Backup_Folder + "/" +
 	part_settings->Part->Backup_FileName;
-      if (!part_settings->adbbackup && part_settings->generate_digest)
+      if (!part_settings->adbbackup)
 	{
-	  if (!twrpDigestDriver::Make_Digest(Full_Filename))
-	    goto backup_error;
+		if (part_settings->generate_digest){
+			if (!twrpDigestDriver::Make_Digest(Full_Filename))
+				goto backup_error;
+		} else {
+			twrpDigestDriver::Add_Digest(Full_Filename);
+		}
 	}
 
       if (part_settings->Part->Has_SubPartition)
@@ -817,10 +823,12 @@ bool TWPartitionManager::Backup_Partition(PartitionSettings * part_settings)
 		  if (!part_settings->adbbackup
 		      && part_settings->generate_digest)
 		    {
-		      if (!twrpDigestDriver::Make_Digest(Full_Filename))
-			{
-			  goto backup_error;
-			}
+		      if (part_settings->generate_digest) {
+						if (!twrpDigestDriver::Make_Digest(Full_Filename))
+							goto backup_error;
+					} else {
+						twrpDigestDriver::Add_Digest(Full_Filename);
+					}
 		    }
 		}
 	    }
@@ -943,6 +951,7 @@ int TWPartitionManager::Run_Backup(bool adbbackup)
   stop_backup.set_value(0);
   seconds = time(0);
   t = localtime(&seconds);
+	twrpDigestDriver::CleanList();
 
   part_settings.img_bytes_remaining = 0;
   part_settings.file_bytes_remaining = 0;
@@ -965,6 +974,8 @@ int TWPartitionManager::Run_Backup(bool adbbackup)
     part_settings.generate_digest = true;
   else
     part_settings.generate_digest = false;
+
+  DataManager::SetValue("fox_show_digest_btn", skip_digest);
 
   DataManager::GetValue(TW_BACKUPS_FOLDER_VAR, part_settings.Backup_Folder);
   DataManager::GetValue(TW_BACKUP_NAME, Backup_Name);
@@ -1146,14 +1157,23 @@ int TWPartitionManager::Run_Backup(bool adbbackup)
   unsigned long long file_bps =
     part_settings.file_bytes / (int) part_settings.file_time;
 
-  if (part_settings.file_bytes != 0)
+  bool isInternal = strstr(part_settings.Backup_Folder.c_str(), "data/media/0"); 
+  if (part_settings.file_bytes != 0) {
+	file_bps /= 1048576;
     gui_msg(Msg
 	    ("avg_backup_fs=Average backup rate for file systems: {1} MB/sec")
-	    (file_bps / (1024 * 1024)));
-  if (part_settings.img_bytes != 0)
+	    (file_bps));
+	string varFile = isInternal ? "of_average_file" : "of_average_ext_file";
+	DataManager::SetValue(varFile, (file_bps + DataManager::GetIntValue(varFile)) / 2);
+  }
+  if (part_settings.img_bytes != 0) {
+	img_bps /= 1048576;
     gui_msg(Msg
 	    ("avg_backup_img=Average backup rate for imaged drives: {1} MB/sec")
-	    (img_bps / (1024 * 1024)));
+	    (img_bps));
+	string varImg = isInternal ? "of_average_img" : "of_average_ext_img";
+	DataManager::SetValue(varImg, (img_bps + DataManager::GetIntValue(varImg)) / 2);
+  }
 
   time(&total_stop);
   int total_time = (int) difftime(total_stop, total_start);
@@ -1711,10 +1731,10 @@ int TWPartitionManager::Wipe_Dalvik_Cache(void) {
 
 	dir.push_back("/data/dalvik-cache");
 
-	std::string cacheDir = TWFunc::get_cache_dir();
-	if (cacheDir == NON_AB_CACHE_DIR) {
-		if (!PartitionManager.Mount_By_Path(NON_AB_CACHE_DIR, false)) {
-			LOGINFO("Unable to mount %s for wiping cache.\n", NON_AB_CACHE_DIR);
+	std::string cacheDir = TWFunc::get_log_dir();
+	if (cacheDir == CACHE_LOGS_DIR) {
+		if (!PartitionManager.Mount_By_Path(CACHE_LOGS_DIR, false)) {
+			LOGINFO("Unable to mount %s for wiping cache.\n", CACHE_LOGS_DIR);
 		}
 		dir.push_back(cacheDir + "dalvik-cache");
 		dir.push_back(cacheDir + "/dc");
@@ -1729,7 +1749,7 @@ int TWPartitionManager::Wipe_Dalvik_Cache(void) {
 		}
 	}
 
-	if (cacheDir == NON_AB_CACHE_DIR) {
+	if (cacheDir == CACHE_LOGS_DIR) {
 		gui_msg("wiping_cache_dalvik=Wiping Dalvik Cache Directories...");
 	} else {
 		gui_msg("wiping_dalvik=Wiping Dalvik Directory...");
@@ -1741,7 +1761,7 @@ int TWPartitionManager::Wipe_Dalvik_Cache(void) {
 		}
 	}
 
-	if (cacheDir == NON_AB_CACHE_DIR) {
+	if (cacheDir == CACHE_LOGS_DIR) {
 		gui_msg("cache_dalvik_done=-- Dalvik Cache Directories Wipe Complete!");
 	} else {
 		gui_msg("dalvik_done=-- Dalvik Directory Wipe Complete!");
@@ -2742,7 +2762,8 @@ void TWPartitionManager::Get_Partition_List(string ListType,
 	      sprintf(free_space, "%llu", (*iter)->Free / 1024 / 1024);
 	      part.Display_Name = (*iter)->Storage_Name + " (";
 	      part.Display_Name += free_space;
-	      part.Display_Name += "MB)";
+		  part.Display_Name += gui_parse_text("{@mbyte}");
+		  part.Display_Name += ")";
 	      part.Mount_Point = (*iter)->Storage_Path;
 	      if ((*iter)->Storage_Path == Current_Storage)
 		part.selected = 1;
@@ -2758,7 +2779,7 @@ void TWPartitionManager::Get_Partition_List(string ListType,
       unsigned long long Backup_Size;
       for (iter = Partitions.begin(); iter != Partitions.end(); iter++)
 	{
-	  if ((*iter)->Can_Be_Backed_Up && !(*iter)->Is_SubPartition
+	  if (((*iter)->Can_Be_Backed_Up || (((*iter)->Can_Be_Adv_Backed_Up) && (DataManager::GetIntValue("fox_adv_backup") != 0 ))) && !(*iter)->Is_SubPartition
 	      && (*iter)->Is_Present)
 	    {
 	      struct PartitionList part;
@@ -2768,14 +2789,17 @@ void TWPartitionManager::Get_Partition_List(string ListType,
 		  std::vector < TWPartition * >::iterator subpart;
 
 					for (subpart = Partitions.begin(); subpart != Partitions.end(); subpart++) {
-						if ((*subpart)->Is_SubPartition && (*subpart)->Can_Be_Backed_Up && (*subpart)->Is_Present && (*subpart)->SubPartition_Of == (*iter)->Mount_Point)
+						if ((*subpart)->Is_SubPartition && ((*subpart)->Can_Be_Backed_Up || ((*subpart)->Can_Be_Adv_Backed_Up && DataManager::GetIntValue("fox_adv_backup") != 0 )) && (*subpart)->Is_Present && (*subpart)->SubPartition_Of == (*iter)->Mount_Point)
 							Backup_Size += (*subpart)->Backup_Size;
 					}
 				}
-				sprintf(backup_size, "%.2lf", (double)Backup_Size / 1024 / 1024);
+				part.PartitionSize = Backup_Size;
+				part.isFiles = (*iter)->Backup_Method == BM_FILES ? true : false;
+				sprintf(backup_size, Backup_Size % 1048576 == 0 ? "%.0lf" : "%.2lf", (double)Backup_Size / 1048576);
 				part.Display_Name = (*iter)->Backup_Display_Name + " (";
 				part.Display_Name += backup_size;
-				part.Display_Name += "MB)";
+				part.Display_Name += gui_parse_text("{@mbyte}");
+				part.Display_Name += ")";
 				part.Mount_Point = (*iter)->Backup_Path;
 				part.selected = 0;
 				Partition_List->push_back(part);
@@ -2884,14 +2908,14 @@ void TWPartitionManager::Output_Storage_Fstab(void) {
 	std::vector<TWPartition*>::iterator iter;
 	char storage_partition[255];
 	std::string Temp;
-	std::string cacheDir = TWFunc::get_cache_dir();
+	std::string cacheDir = TWFunc::get_log_dir();
 
 	if (cacheDir.empty()) {
 		LOGINFO("Unable to find cache directory\n");
 		return;
 	}
 
-	std::string storageFstab = TWFunc::get_cache_dir() + "recovery/storage.fstab";
+	std::string storageFstab = TWFunc::get_log_dir() + "recovery/storage.fstab";
 	FILE *fp = fopen(storageFstab.c_str(), "w");
 
 	if (fp == NULL) {

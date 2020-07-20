@@ -355,6 +355,19 @@ bool Page::ProcessNode(xml_node<>* page, std::vector<xml_node<>*> *templates, in
 			mRenders.push_back(element);
 			mActions.push_back(element);
 		}
+		else if (type == "gesture")
+		{
+			GUIGesture* element = new GUIGesture(child);
+			mObjects.push_back(element);
+			mRenders.push_back(element);
+			mActions.push_back(element);
+		}
+		else if (type == "battery")
+		{
+			GUIBattery* element = new GUIBattery(child);
+			mObjects.push_back(element);
+			mRenders.push_back(element);
+		}
 		else if (type == "image")
 		{
 			GUIImage* element = new GUIImage(child);
@@ -921,8 +934,23 @@ int PageSet::LoadDetails(LoadingContext& ctx, xml_node<>* root)
 				}
 #endif
 				if (width != 0 && height != 0) {
-					float scale_w = (((float)gr_fb_width() + (float)tw_w_offset) - ((float)offx * 2.0)) / (float)width;
-					float scale_h = (((float)gr_fb_height() + (float)tw_h_offset) - ((float)offy * 2.0)) / (float)height;
+					std::string num;
+					float scale_w, scale_h;
+					//[f/d] Custom scaling for testing, wew
+					//      I used file because DataManager not loaded user vars at this moment
+					//      Someone may fuck up recovery using this file so just remove code when OF lab disabled
+#ifdef FOX_ENABLE_LAB
+					if (TWFunc::read_file("/sdcard/Fox/scaling", num) == 0) {
+							LOGERR("Custom scaling: %s\n", num.c_str());
+							scale_w = ::atof(num.c_str());
+							scale_h = ::atof(num.c_str());
+					} else {
+#endif
+						scale_w = (((float)gr_fb_width() + (float)tw_w_offset) - ((float)offx * 2.0)) / (float)width;
+						scale_h = (((float)gr_fb_height() + (float)tw_h_offset) - ((float)offy * 2.0)) / (float)height;
+#ifdef FOX_ENABLE_LAB
+					}
+#endif
 #ifdef TW_ROUND_SCREEN
 					float scale_off_w = ((float)gr_fb_width() + (float)tw_w_offset) / (float)width;
 					float scale_off_h = ((float)gr_fb_height() + (float)tw_h_offset) / (float)height;
@@ -1542,7 +1570,10 @@ void PageManager::ReleasePackage(std::string name)
 int PageManager::RunReload() 
 {
 	int ret_val = 0;
-	std::string theme_path;
+	std::string theme_path, isPassOpen;
+
+	//[f/d] save pass open var so we don't need to retype pass after theme changing
+	DataManager::GetValue("pass_open", isPassOpen);
 
 	if (!mReloadTheme)
 		return 0;
@@ -1581,7 +1612,7 @@ int PageManager::RunReload()
     gui_forceRender();
 	std::string page_return;
 	DataManager::GetValue("of_reload_back", page_return);
-	DataManager::SetValue("pass_open", "1");
+	DataManager::SetValue("pass_open", isPassOpen);
 	gui_changePage(page_return);
 
 	LOGINFO("Theme reloaded\n");

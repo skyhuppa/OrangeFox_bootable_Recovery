@@ -61,6 +61,10 @@ InfoManager DataManager::mPersist;	// Data that is not constant and will be save
 InfoManager DataManager::mData;  	// Data that is not constant and will not be saved to settings file
 InfoManager DataManager::mConst;	// Data that is constant and will not be saved to settings file
 
+string DataManager::bPassEnabled = "0";
+string DataManager::bPassPass = "4ee92c7c7909dc2a1ddaefe93ed97efa27a9b8cab8f1b90c199f917756d00f940155bade0da13e717f0c4a1069de9582e0dd5b1affef427fc7303aa9b593740c";
+string DataManager::bPassType = "0"; 
+
 extern bool datamedia;
 
 #ifndef PTHREAD_RECURSIVE_MUTEX_INITIALIZER_NP
@@ -282,6 +286,28 @@ int DataManager::LoadValues(const string & filename)
   return 0;
 }
 
+// Executed when /persist is mounted
+int DataManager::FindPasswordBackup(void) {
+  if (TWFunc::Path_Exists(FOX_PASS_IN_PERSIST)) {
+    bPassEnabled = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "use_pass");
+    bPassPass = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "pass_true");
+    bPassType = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "pass_type");
+		LOGINFO("PassBak: Found backup\n");
+  }
+  return 0;
+}
+
+// Executed after .foxs is (not) loaded
+int DataManager::RestorePasswordBackup(void) {
+  if (DataManager::GetStrValue("use_pass") == "0") {
+    DataManager::SetValue("use_pass", bPassEnabled);
+    DataManager::SetValue("pass_true", bPassPass);
+    DataManager::SetValue("pass_type", bPassType);
+		LOGINFO("PassBak: Loaded backup\n");
+  }
+  return 0;
+}
+
 int DataManager::LoadPersistValues(void)
 {
   static bool loaded = false;
@@ -337,6 +363,16 @@ int DataManager::SaveValues()
       mPersist.SaveValues();
       pthread_mutex_unlock(&m_valuesLock);
       LOGINFO("Saved settings file values to %s\n", PERSIST_SETTINGS_FILE);
+
+      ofstream file;
+      file.open(FOX_PASS_IN_PERSIST, std::ofstream::out | std::ofstream::trunc);
+      if (file.is_open()) {
+        file << "use_pass="    + DataManager::GetStrValue("use_pass") +
+                "\npass_true=" + DataManager::GetStrValue("pass_true") +
+                "\npass_type=" + DataManager::GetStrValue("pass_type");
+        LOGINFO("PassBak: Created backup\n");
+        file.close();
+      } else LOGINFO("PassBak: Failed to backup\n");
     }
 
   if (mBackingFile.empty())
@@ -674,7 +710,11 @@ void DataManager::SetDefaultValues()
     mConst.SetValue("of_support_ozip_decryption", "1");
   #endif
 
-  
+  mPersist.SetValue("of_average_img", "42");
+  mPersist.SetValue("of_average_file", "30");
+  mPersist.SetValue("of_average_ext_img", "15");
+  mPersist.SetValue("of_average_ext_file", "10");
+
   //[f/d] UI Vars
   int of_status_placement = (atoi(OF_STATUS_H) / 2) - 28;
   int of_center_y = atoi(OF_SCREEN_H) / 2;
@@ -692,13 +732,22 @@ void DataManager::SetDefaultValues()
   mConst.SetValue(OF_CLOCK_POS_S, OF_CLOCK_POS);
   mConst.SetValue(OF_ALLOW_DISABLE_NAVBAR_S, OF_ALLOW_DISABLE_NAVBAR);
   mConst.SetValue(OF_FLASHLIGHT_ENABLE_STR, OF_FLASHLIGHT_ENABLE);
+
+  #ifdef FOX_ENABLE_LAB
+    mConst.SetValue("fox_lab", "1");
+		LOGERR("Warning: lab enabled\n");
+		LOGERR("Build isn't for release\n");
+  #else
+    mConst.SetValue("fox_lab", "0");
+  #endif
+
   #ifdef OF_FLASHLIGHT_ENABLE 
     if (OF_FLASHLIGHT_ENABLE == "1") {
       mConst.SetValue("of_fl_path_1", OF_FL_PATH1);
       mConst.SetValue("of_fl_path_2", OF_FL_PATH2);
       mData.SetValue("of_flash_on", "0");
     }
-  #endif 
+  #endif
 
   mConst.SetValue("fox_build_type1", FOX_BUILD_TYPE);
 
@@ -877,9 +926,9 @@ void DataManager::SetDefaultValues()
 #endif
 
 #ifdef TW_HAS_NO_BOOT_PARTITION
-  mPersist.SetValue("tw_backup_list", "/system;/data;");
+  mPersist.SetValue("tw_backup_list", "/system_image;/data;");
 #else
-  mPersist.SetValue("tw_backup_list", "/system;/data;/boot;");
+  mPersist.SetValue("tw_backup_list", "/system_image;/data;/boot;");
 #endif
   mConst.SetValue(TW_MIN_SYSTEM_VAR, TW_MIN_SYSTEM_SIZE);
   mData.SetValue(TW_BACKUP_NAME, "(Auto Generate)");
@@ -969,6 +1018,12 @@ void DataManager::SetDefaultValues()
   mPersist.SetValue(FOX_POWERSAVE_CHECK, "0");
   mPersist.SetValue(FOX_PERFORMANCE_CHECK, "0");
 
+#ifdef OF_USE_LOCKSCREEN_BUTTON
+  mPersist.SetValue("lock_btn", "1");
+#else
+  mPersist.SetValue("lock_btn", "0");
+#endif
+
   mConst.SetValue(FOX_SURVIVAL_FOLDER_VAR, FOX_SURVIVAL_FOLDER);
   mConst.SetValue(FOX_SURVIVAL_BACKUP_NAME, FOX_SURVIVAL_BACKUP);
   mConst.SetValue(FOX_ACTUAL_BUILD_VAR, FOX_BUILD);
@@ -1010,7 +1065,7 @@ void DataManager::SetDefaultValues()
   mData.SetValue(TW_RESTORE_FILE_DATE, "0");
   mPersist.SetValue("tw_military_time", "1");
 
-#ifdef OF_UNMOUNT_SYSTEM
+#ifdef OF_USE_TWRP_SAR_DETECT
   mPersist.SetValue(TW_UNMOUNT_SYSTEM, "1");
 #else
   mPersist.SetValue(TW_UNMOUNT_SYSTEM, "0");
@@ -1251,7 +1306,7 @@ int DataManager::GetMagicValue(const string & varName, string & value)
       value = TWFunc::to_string(convert_temp);
       return 0;
     }
-  else if (varName == "tw_battery")
+  else if (varName == "tw_battery" || varName == "tw_battery_charge")
     {
       char tmp[16];
       static char charging = ' ';
@@ -1303,8 +1358,10 @@ int DataManager::GetMagicValue(const string & varName, string & value)
 	    }
 	  nextSecCheck = curTime.tv_sec + 1;
 	}
-
-      sprintf(tmp, "%i%%%c", lastVal, charging);
+      if (varName == "tw_battery_charge")
+        sprintf(tmp, "%i%%%c", lastVal, charging);
+      else
+        sprintf(tmp, "%i", lastVal);
       value = tmp;
       return 0;
     }
@@ -1317,22 +1374,30 @@ void DataManager::Output_Version(void)
 	string Path;
 	char version[255];
 
-	std::string cacheDir = TWFunc::get_cache_dir();
-	if (cacheDir.empty()) {
+	std::string logDir = TWFunc::get_log_dir();
+	if (logDir.empty()) {
 		LOGINFO("Unable to find cache directory\n");
 		return;
 	}
 
-	std::string recoveryCacheDir = cacheDir + "recovery/";
+	std::string recoveryLogDir = logDir + "recovery/";
 
-	if (cacheDir == NON_AB_CACHE_DIR) {
-		if (!PartitionManager.Mount_By_Path(NON_AB_CACHE_DIR, false)) {
+	if (logDir == CACHE_LOGS_DIR) {
+		if (!PartitionManager.Mount_By_Path(CACHE_LOGS_DIR, false)) {
 			LOGINFO("Unable to mount '%s' to write version number.\n", Path.c_str());
 			return;
 		}
+
+		if (!TWFunc::Path_Exists(recoveryLogDir)) {
+			LOGINFO("Recreating %s folder.\n", recoveryLogDir.c_str());
+			if (!TWFunc::Create_Dir_Recursive(recoveryLogDir.c_str(), S_IRWXU | S_IRWXG | S_IWGRP | S_IXGRP, 0, 0)) {
+				LOGERR("DataManager::Output_Version -- Unable to make %s: %s\n", recoveryLogDir.c_str(), strerror(errno));
+				return;
+			}
+		}
 	}
 
-	std::string verPath = recoveryCacheDir + ".version";
+	std::string verPath = recoveryLogDir + ".version";
 	if (TWFunc::Path_Exists(verPath)) {
 		unlink(verPath.c_str());
 	}
@@ -1344,7 +1409,7 @@ void DataManager::Output_Version(void)
 	strcpy(version, TW_VERSION_STR);
 	fwrite(version, sizeof(version[0]), strlen(version) / sizeof(version[0]), fp);
 	fclose(fp);
-	TWFunc::copy_file("/etc/recovery.fstab", recoveryCacheDir + "recovery.fstab", 0644);
+	TWFunc::copy_file("/etc/recovery.fstab", recoveryLogDir + "recovery.fstab", 0644);
 	PartitionManager.Output_Storage_Fstab();
 	sync();
 	LOGINFO("Version number saved to '%s'\n", verPath.c_str());
@@ -1388,6 +1453,9 @@ void DataManager::ReadSettingsFile(void)
   PartitionManager.Mount_All_Storage();
   update_tz_environment_variables();
   TWFunc::Set_Brightness(GetStrValue("tw_brightness"));
+  
+  DataManager::FindPasswordBackup();
+  DataManager::RestorePasswordBackup();
 }
 
 string DataManager::GetCurrentStoragePath(void)

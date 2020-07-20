@@ -2,8 +2,6 @@
 <recovery>
 	<pages>
 		<page name="mount">
-			<template name="body"/>
-
 			<fill color="%accent%">
 				<condition var1="tw_mtp_enabled" var2="1"/>
 				<condition var1="tw_has_mtp" var2="1"/>
@@ -16,18 +14,16 @@
 				<placement x="0" y="%ab_h%" w="%screen_w%" h="%ab_btn_h%"/>
 			</fill>
 
-			<image>
+			<image style="switch_off">
 				<condition var1="tw_mtp_enabled" var2="0"/>
 				<condition var1="tw_has_mtp" var2="1"/>
-				<placement x="%ab_btn1_x%" y="%ab2_y%"/>
-				<image resource="switch_off"/>
+				<placement x="%ab_btn1_x%" y="%ab2_y%" placement="4"/>
 			</image>
 			
-			<image>
+			<image style="switch_on">
 				<condition var1="tw_mtp_enabled" var2="1"/>
 				<condition var1="tw_has_mtp" var2="1"/>
-				<placement x="%ab_btn1_x%" y="%ab2_y%"/>
-				<image resource="switch_on"/>
+				<placement x="%ab_btn1_x%" y="%ab2_y%" placement="4"/>
 			</image>
 
 			<text style="text_ab_switch">
@@ -50,86 +46,54 @@
 				<action function="startmtp"/>
 			</button>
 			
-			<fill color="%error%">
-				<conditions>
-					<condition var1="tw_is_encrypted" var2="1"/>
-					<condition var1="tw_is_decrypted" var2="0"/>
-				</conditions>
-				<placement x="0" y="%ab_h%" w="%screen_w%" h="%ab_btn_h%"/>
-			</fill>
-
-			<text style="text_ab_switch">
-				<conditions>
-					<condition var1="tw_is_encrypted" var2="1"/>
-					<condition var1="tw_is_decrypted" var2="0"/>
-				</conditions>
-				<placement x="%col1_x_indent%" y="%ab_bc2_y%"/>
-				<text>{@decrypt_data_btn}</text>
-			</text>
-			
-			<image>
-				<conditions>
-					<condition var1="tw_is_encrypted" var2="1"/>
-					<condition var1="tw_is_decrypted" var2="0"/>
-				</conditions>
-				<placement x="%ab_btn1_x%" y="%ab2_y%"/>
-				<image resource="continue_btn"/>
-			</image>
-
-			<button style="bs_btn">
-				<conditions>
-					<condition var1="tw_is_encrypted" var2="1"/>
-					<condition var1="tw_is_decrypted" var2="0"/>
-				</conditions>
-				<placement x="0" y="%ab_h%" w="%screen_w%" h="%ab_btn_h%"/>
-				<action function="page">decrypt</action>
-			</button>
-			
-			<template name="ab"/>
-
-			<template name="statusbarinfo"/>
+			<template name="base"/>
 
 			<text style="text_ab_title">
 				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
 				<text>{@mount_hdr}</text>
 			</text>
 
-			<button>
-				<placement x="%ab_btn1_x%" y="%ab_y%"/>
-				<image resource="actionbar_btn" highlightresource="actionbar_btn_hl"/>
+			<button style="actionbar">
+				<placement x="%ab_btn1_x%" y="%ab_y%" placement="4"/>
 				<action function="set">general_back=mount</action>
 				<action function="page">ext_general</action>
 			</button>
 
 			<image>
-				<placement x="%ab_btn1_x%" y="%ab_y%"/>
+				<placement x="%ab_btn1_x%" y="%ab_y%" placement="4"/>
 				<image resource="actionbar_settings"/>
 			</image>
 
 			<text style="caption">
-				<placement x="%col1_x%" y="%row1_3a_y%"/>
+				<placement x="%col1_x_caption%" y="%row1_3a_y%"/>
 				<text>{@partitions}</text>
 			</text>
 
 			<partitionlist>
-				<placement x="0" y="%row2_1a_y%" w="%screen_w%" h="%part_list_btns_9_h%"/>
+				<placement x="0" y="%row2_1a_y%" w="%screen_w%" h="%part_list_mount_h%"/>
 				<listtype name="mount"/>
 			</partitionlist>
 			
+			<image>
+				<condition var1="tw_has_usb_storage" var2="1"/>
+				<placement x="%btn_float_x%" y="%btn_float_y%" placement="4"/>
+				<image resource="fab_shadow"/>
+			</image>
+			
 			<button style="floating_btn">
 				<condition var1="tw_has_usb_storage" var2="1"/>
-				<placement x="%btn_float_x%" y="%btn_float_y%"/>
-				<actions>
-					<action function="mount">usb</action>
-					<action function="page">usb_mount</action>
-				</actions>
+				<placement x="%btn_float_x%" y="%btn_float_y%" placement="4"/>
+				<action function="mount">usb</action>
+				<action function="page">usb_mount</action>
 			</button>
 			
 			<image>
 				<condition var1="tw_has_usb_storage" var2="1"/>
-				<placement x="%btn_float_x%" y="%btn_float_y%"/>
+				<placement x="%btn_float_x%" y="%btn_float_y%" placement="4"/>
 				<image resource="fab_usb"/>
 			</image>
+
+			<template name="gestures"/>
 
 			<action>
 				<touch key="home"/>
@@ -143,25 +107,11 @@
 		</page>
 
 		<page name="usb_mount">
-			<template name="body"/>
-
-			<template name="ab_ex"/>
-
-			<template name="statusbarinfo"/>
+			<template name="base"/>
 
 			<text style="text_ab_title">
 				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
-				<text>{@mount_hdr}</text>
-			</text>
-
-			<text style="text_ab_title">
-				<placement x="%col1_x_indent%" y="%row1_2_y%" placement="2"/>
 				<text>{@usb_storage_hdr}</text>
-			</text>
-
-			<text style="text_ab_subtitle">
-				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
-				<text>{@usb_stor_mnt1}</text>
 			</text>
 
 			<image>
@@ -169,34 +119,29 @@
 				<placement x="%center_x%" y="%center_y%" placement="4"/>
 			</image>
 			
-			<button>
+			<button style="actionbar">
 				<condition var1="tw_busy" var2="1"/>
-				<placement x="%ab_back_x%" y="%ab_y%"/>
-				<image resource="actionbar_btn" highlightresource="actionbar_btn_hl"/>
-				<action function="page">usb_umount</action>
+				<placement x="%ab_back_x%" y="%ab_y%" placement="4"/>
+				<action function="unmount">usb</action>
+				<action function="page">mount</action>
 			</button>
 
 			<image>
 				<condition var1="tw_busy" var2="1"/>
-				<placement x="%ab_back_x%" y="%ab_y%"/>
+				<placement x="%ab_back_x%" y="%ab_y%" placement="4"/>
 				<image resource="actionbar_cancel"/>
 			</image>
 
 			<action>
-				<touch key="back"/>
-				<action function="page">usb_umount</action>
-				<action function="set">tw_busy=1</action>
-			</action>
-		</page>
-
-		<page name="usb_umount">
-			<action>
+				<touch key="home"/>
 				<action function="unmount">usb</action>
+				<action function="page">main</action>
 			</action>
 
 			<action>
+				<touch key="back"/>
+				<action function="unmount">usb</action>
 				<action function="page">mount</action>
-				<action function="set">tw_busy=0</action>
 			</action>
 		</page>
 
@@ -207,29 +152,8 @@
 
 			<action>
 				<condition var1="tw_lifetime_writes" var2="1"/>
-				<actions>
-					<action function="mountsystemtoggle">0</action>
-					<action function="page">main</action>
-				</actions>
-			</action>
-
-			<action>
-				<condition var1="tw_lifetime_writes" var2="0"/>
-				<action function="page">system_readonly</action>
-			</action>
-		</page>
-
-		<page name="system_readonly_check_mount">
-			<action>
-				<action function="checkpartitionlifetimewrites">/system</action>
-			</action>
-
-			<action>
-				<condition var1="tw_lifetime_writes" var2="1"/>
-				<actions>
-					<action function="mountsystemtoggle">0</action>
-					<action function="page">ext_general</action>
-				</actions>
+				<action function="mountsystemtoggle">0</action>
+				<action function="page">ext_general</action>
 			</action>
 
 			<action>
@@ -243,11 +167,9 @@
 
 			<slider style="slider_action">
 				<placement x="%center_x%" y="%slider_y%" placement="5"/>
-				<actions>
-					<action function="mountsystemtoggle">0</action>
-					<action function="set">tw_page_done=1</action>
-					<action function="page">main</action>
-				</actions>
+				<action function="mountsystemtoggle">0</action>
+				<action function="set">tw_page_done=1</action>
+				<action function="page">main</action>
 			</slider>
 
 			<action>
@@ -263,11 +185,9 @@
 
 			<slider style="slider_action">
 				<placement x="%center_x%" y="%slider_y%" placement="5"/>
-				<actions>
-					<action function="mountsystemtoggle">0</action>
-					<action function="set">tw_page_done=1</action>
-					<action function="page">ext_general</action>
-				</actions>
+				<action function="mountsystemtoggle">0</action>
+				<action function="set">tw_page_done=1</action>
+				<action function="page">ext_general</action>
 			</slider>
 
 			<action>
@@ -283,116 +203,55 @@
 				<condition var1="tw_crypto_pwtype" var2="2"/>
 				<action function="page">decrypt_pattern</action>
 			</action>
+			
+			<template name="body_ct"/>
+			<template name="keyboardtemplate"/>
+			<template name="decrypt_page"/>
+			<!-- <template name="navbar_bkg"/> -->
 
-			<template name="body_key"/>
+			<listbox style="btn_list">
+				<placement x="0" y="%row3_3a_y%" w="%screen_w%" h="%bl_h1%"/>
+				<listitem name="{@pass_pin}">
+					<icon res="dialpad"/>
+					<action function="set">of_show_pass=0</action>
+					<action function="page">decrypt_pin</action>
+				</listitem>
+			</listbox>
+		</page>
 
-			<template name="ab_ex"/>
-
-			<template name="statusbarinfo"/>
-
-			<text style="text_ab_title">
-				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
-				<text>{@mount_hdr}</text>
-			</text>
-
-			<text style="text_ab_title">
-				<placement x="%col1_x_indent%" y="%row1_2_y%" placement="2"/>
-				<text>{@decrypt}</text>
-			</text>
-
-			<text style="text_ab_subtitle">
-				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
-				<text>{@data_part}</text>
-			</text>
-
-			<image>
-				<placement x="%col1_x%" y="%row2_1a_y%"/>
-				<image resource="icon_info"/>
-			</image>
-
-			<text style="text_body2_hl">
-				<placement x="%col1_x_indent%" y="%row2_1a_y%"/>
-				<text>{@encrypt_data_part}</text>
-			</text>
-
-			<text style="text_body2">
-				<placement x="%col1_x_indent%" y="%row2_3a_y%"/>
-				<text>{@decrypt_data_enter_note1}</text>
-			</text>
-
-			<text style="text_body2">
-				<placement x="%col1_x_indent%" y="%row3_1a_y%"/>
-				<text>{@decrypt_data_enter_note2}</text>
-			</text>
-
-			<text style="caption_hl">
-				<placement x="%col1_x%" y="%row4_1_y%"/>
-				<text>{@decrypt_data_enter_pass}</text>
-			</text>
-
-			<input>
-				<placement x="%col1_x%" y="%input_decr_y%" w="%input_width%" h="%input_height%"/>
-				<text>%tw_crypto_display%</text>
-				<data name="tw_crypto_password" mask="*" maskvariable="tw_crypto_display"/>
-				<restrict minlen="1" maxlen="254"/>
-				<actions>
-					<action function="page">trydecrypt</action>
-				</actions>
-			</input>
-
-			<fill color="%accent%">
-				<condition var1="tw_password_fail" op="!=" var2="1"/>
-				<placement x="%col1_x%" y="%row4_3_y%" w="%content_w%" h="%input_line_height%" placement="1"/>
-			</fill>
-
-			<fill color="%text_fail%">
-				<condition var1="tw_password_fail" var2="1"/>
-				<placement x="%col1_x%" y="%row4_3_y%" w="%content_w%" h="%input_line_height%" placement="1"/>
-			</fill>
-
-			<text style="text_input_fail">
-				<condition var1="tw_password_fail" var2="1"/>
-				<placement x="%col1_x%" y="%row4_3_y%"/>
-				<text>{@restore_dec_fail}</text>
-			</text>
-
+		<page name="decrypt_pin">
 			<action>
-				<touch key="home"/>
-				<actions>
-					<action function="set">tw_page_done=1</action>
-					<action function="page">main</action>
-				</actions>
+				<condition var1="tw_crypto_pwtype" var2="2"/>
+				<action function="page">decrypt_pattern</action>
 			</action>
+			
+			<template name="body_ct"/>
+			<template name="keyboardnum"/>
+			<template name="decrypt_page"/>
+			<!-- <template name="navbar_bkg"/> -->
 
-			<action>
-				<touch key="back"/>
-				<actions>
-					<action function="set">tw_page_done=1</action>
-					<action function="page">main</action>
-				</actions>
-			</action>
+			<listbox style="btn_list">
+				<placement x="0" y="%row3_3a_y%" w="%screen_w%" h="%bl_h1%"/>
+				<listitem name="{@pass_classic}">
+					<icon res="pass_classic"/>
+					<action function="set">of_show_pass=0</action>
+					<action function="page">decrypt</action>
+				</listitem>
+			</listbox>
 		</page>
 
 		<page name="decrypt_pattern">
-			<template name="body"/>
+			<template name="body_ct"/>
+			<template name="navbar"/>
 
-			<template name="ab_ex"/>
-
-			<template name="statusbarinfo"/>
-
-			<text style="text_ab_title">
-				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
-				<text>{@mount_hdr}</text>
-			</text>
-
-			<text style="text_ab_title">
-				<placement x="%col1_x_indent%" y="%row1_2_y%" placement="2"/>
-				<text>{@decrypt}</text>
-			</text>
+			<image>
+				<image resource="actionbar_encr_ena"/>
+				<placement x="%center_x%" y="%centered_title_1%" placement="4"/>
+			</image>
 
 			<text style="text_ab_subtitle">
-				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
-				<text>{@data_part}</text>
+				<placement x="%center_x%" y="%centered_title_2%" placement="4"/>
+				<text>{@decrypt}</text>
 			</text>
 
 			<image>
@@ -430,11 +289,9 @@
 			</text>
 
 			<patternpassword>
-				<size name="tw_gui_pattern_grid_size" default="3"/>
 				<placement x="%pattern_x%" y="%row4_1a_y%" w="%pattern_size%" h="%pattern_size%"/>
-				<dot color="%text_dark%" activecolor="%accent%" radius="%pattern_dot_dia%"/>
-				<line color="%accent%" width="%pattern_line_w%"/>
 				<data name="tw_crypto_password"/>
+				<action function="set">data_decrypted=0</action>
 				<action function="page">trydecrypt</action>
 			</patternpassword>
 
@@ -462,73 +319,103 @@
 				<action function="set">tw_gui_pattern_grid_size=6</action>
 			</button>
 
+			<template name="gestures"/>
+
 			<action>
 				<touch key="home"/>
-				<actions>
-					<action function="set">tw_page_done=1</action>
-					<action function="page">main</action>
-				</actions>
+				<action function="set">tw_page_done=1</action>
+				<action function="page">decrypt_redirect</action>
 			</action>
 
 			<action>
 				<touch key="back"/>
-				<actions>
-					<action function="set">tw_page_done=1</action>
-					<action function="page">main</action>
-				</actions>
+				<action function="set">tw_page_done=1</action>
+				<action function="page">decrypt_redirect</action>
+			</action>
+		</page>
+
+		<page name="decrypt_redirect">
+			<action>
+				<condition var1="of_decrypt_from_menu" var2="1"/>
+				<action function="page">advanced</action>
 			</action>
 		</page>
 
 		<page name="trydecrypt">
-			<template name="body"/>
-
+			<template name="body_ct"/>
 			<template name="progress_bar"/>
 
-			<template name="ab_ex"/>
+			<image>
+				<image resource="actionbar_encr_ena"/>
+				<placement x="%center_x%" y="%centered_title_1%" placement="4"/>
+			</image>
 
-			<template name="statusbarinfo"/>
-
-			<text style="text_ab_title">
-				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
-				<text>{@mount_hdr}</text>
-			</text>
-
-			<text style="text_ab_title">
-				<placement x="%col1_x_indent%" y="%row1_2_y%" placement="2"/>
+			<text style="text_ab_subtitle">
+				<placement x="%center_x%" y="%centered_title_2%" placement="4"/>
 				<text>{@decrypt_data_trying}</text>
 			</text>
 
-			<template name="action_page_console"/>
-			
-			<template name="cant_cancel" />
+			<template name="action_page_console_big"/>
 
 			<action>
 				<action function="decrypt"/>
 			</action>
 
 			<action>
-				<conditions>
-					<condition var1="tw_operation_state" var2="1"/>
-					<condition var1="tw_operation_status" op="!=" var2="0"/>
-				</conditions>
-				<actions>
-					<action function="set">tw_password_fail=1</action>
-					<action function="page">decrypt</action>
-				</actions>
+				<condition var1="tw_operation_state" var2="1"/>
+				<condition var1="tw_operation_status" op="!=" var2="0"/>
+				<action function="set">tw_password_fail=1</action>
+				<action function="page">decrypt</action>
 			</action>
 
+			<!-- After successful decryption at recovery startup, here [vvv]
+				 we set data_decrypted to 1, that triggers block of code
+				 in twrp.cpp [DataManager::GetStrValue("data_decrypted") == "1"]
+				 that instead of starting UI from `main` page,
+				 requesting reload and starting UI from `reapply_settings` page.
+				 Recovery shows up `reapply_settings` and begin reload theme.
+				 When theme was reloaded, recovery shows up `main` page,
+				 then `filemanagerlist` page. -->
+
 			<action>
+				<condition var1="tw_operation_state" var2="1"/>
+				<condition var1="tw_operation_status" var2="0"/>
+				<action function="set">data_decrypted=1</action>
+				<action function="set">tw_page_done=1</action>
+				<!-- this function will correctly reload theme (or just back to menu)
+				     when user decrypting from menu -->
+				<action function="set">of_reload_back=advanced</action>
+				<action function="check_and_reload"/>
+
+				<!-- Old hotfix for reloading there
 				<conditions>
 					<condition var1="tw_operation_state" var2="1"/>
 					<condition var1="tw_operation_status" op="=" var2="0"/>
 				</conditions>
-				<!-- Crutch to load settings if data encrypted -->
 				<actions>
 					<action function="set">tw_back=main</action>
 					<action function="set">tw_page_done=1</action>
 					<action function="page">main</action>
 				</actions>
+				-->
+
 			</action>
+		</page>
+
+		<page name="reapply_settings">
+			<template name="body_ct"/>
+
+			<image>
+				<image resource="actionbar_encr_dis"/>
+				<placement x="%center_x%" y="%centered_title_1%" placement="4"/>
+			</image>
+
+			<text style="text_ab_subtitle">
+				<placement x="%center_x%" y="%centered_title_2%" placement="4"/>
+				<text>{@data_decrypted_reload}</text>
+			</text>
+
+			<template name="action_page_console_big"/>
 		</page>
 	</pages>
 </recovery>

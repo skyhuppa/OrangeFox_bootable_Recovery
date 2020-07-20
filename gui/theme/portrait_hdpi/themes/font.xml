@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <recovery>
 	<resources>
-		<font name="status" filename="Roboto-Medium.ttf" size="40"/>
+		<font name="status" filename="GoogleSans-Medium.ttf" size="40"/>
 		<font name="bigfont" filename="Roboto-Medium.ttf" size="48"/>
 		<font name="body1" filename="Roboto-Regular.ttf" size="42"/>
 		<font name="body2" filename="Roboto-Medium.ttf" size="42"/>
@@ -25,16 +25,17 @@
 		<font name="keylabel-longpress" filename="Roboto-Regular.ttf" size="32"/>
 		
 		<font name="Secondary" filename="GoogleSans-Medium.ttf" size="42"/>
-		<font name="Secondary-title" filename="GoogleSans-Medium.ttf" size="64"/>
+		<font name="Secondary-title" filename="GoogleSans-Medium.ttf" size="58"/>
 		<font name="caption" filename="GoogleSans-Medium.ttf" size="36"/>
 		
-		<font name="clock" filename="GoogleSans-Medium.ttf" size="210"/>
-		<font name="info" filename="GoogleSans-Regular.ttf" size="50"/>
+		<font name="clock" filename="GoogleSans-Regular.ttf" size="210"/>
+		<font name="info" filename="GoogleSans-Medium.ttf" size="50"/>
 	</resources>
 	
 	<variables>
 		<variable name="theme_font" value="Roboto"/>
 		<variable name="theme_sec_font" value="GoogleSans"/>
 		<variable name="theme_font_size" value="n"/>
+		<variable name="theme_font_weight" value="0"/>
 	</variables>
 </recovery>

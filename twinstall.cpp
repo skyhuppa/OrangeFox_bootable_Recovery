@@ -1031,7 +1031,7 @@ static int Run_Update_Binary(const char *path, ZipWrap * Zip, int *wipe_cache,
   // if updater-script doesn't find the correct device
   if (WEXITSTATUS (status) == TW_ERROR_WRONG_DEVICE)
      {
-       gui_print_color("error", "\nPossible causes of this error:\n  1. Wrong device\n  2. Wrong firmware\n  3. Corrupt zip.\n\nSearch online for \"error %i\". ",
+       gui_print_color("error", "\nPossible causes of this error:\n  1. Wrong device\n  2. Wrong firmware\n  3. Corrupt zip\n  4. System not mounted.\n\nSearch online for \"error %i\". ",
        			TW_ERROR_WRONG_DEVICE);
        gui_print_color("error", "Check \"/tmp/recovery.log\", and look above, for the specific cause of this error.\n\n");
      }
@@ -1065,7 +1065,7 @@ static int Run_Update_Binary(const char *path, ZipWrap * Zip, int *wipe_cache,
 
 int TWinstall_zip(const char *path, int *wipe_cache)
 {
-  int ret_val, zip_verify = 1, unmount_system = 1;;
+  int ret_val, zip_verify = 1, unmount_system = 1;
 
   if (strcmp(path, "error") == 0)
     {
@@ -1208,6 +1208,9 @@ int TWinstall_zip(const char *path, int *wipe_cache)
       return INSTALL_CORRUPT;
     }
 
+#ifdef OF_USE_TWRP_SAR_DETECT
+	//unmount_system = 1;
+#endif
 	if (unmount_system) {
 		gui_msg("unmount_system=Unmounting System...");
 		if(!PartitionManager.UnMount_By_Path(PartitionManager.Get_Android_Root_Path(), true)) {
@@ -1217,6 +1220,14 @@ int TWinstall_zip(const char *path, int *wipe_cache)
 		unlink("/system");
 		mkdir("/system", 0755);
 	}
+
+   // DJ9, 20200622: try to avoid a situation where blockimg will bomb out when trying to create a stash
+   if ((TWFunc::Path_Exists("/cache/.")) && (!TWFunc::Path_Exists("/cache/recovery/."))) {
+	LOGINFO("Recreating the /cache/recovery/ folder ...\n");
+	if (!TWFunc::Recursive_Mkdir("/cache/recovery", false))
+	   LOGERR("Could not create /cache/recovery - blockimg may have problems with creating stashes\n");
+   }
+   // DJ9
 
   time_t start, stop;
   time(&start);

@@ -7,53 +7,17 @@
 			</action>
 
 			<action>
-				<conditions>
-					<condition var1="tw_operation_state" var2="1"/>
-					<condition var1="tw_operation_status" var2="0"/>
-				</conditions>
-				<actions>
-					<action function="set">tw_fileexists=1</action>
-					<action function="page">%tw_existpage%</action>
-				</actions>
+				<condition var1="tw_operation_state" var2="1"/>
+				<condition var1="tw_operation_status" var2="0"/>
+				<action function="set">tw_fileexists=1</action>
+				<action function="page">%tw_existpage%</action>
 			</action>
 
 			<action>
-				<conditions>
-					<condition var1="tw_operation_state" var2="1"/>
-					<condition var1="tw_operation_status" var2="1"/>
-				</conditions>
-				<actions>
-					<action function="set">tw_fileexists=0</action>
-					<action function="page">%tw_notexistpage%</action>
-				</actions>
-			</action>
-		</page>
-
-		<page name="filecheck_overlay">
-			<action>
-				<action function="fileexists">%tw_filecheck%</action>
-			</action>
-
-			<action>
-				<conditions>
-					<condition var1="tw_operation_state" var2="1"/>
-					<condition var1="tw_operation_status" var2="0"/>
-				</conditions>
-				<actions>
-					<action function="set">tw_fileexists=1</action>
-					<action function="overlay">%tw_existpage%</action>
-				</actions>
-			</action>
-
-			<action>
-				<conditions>
-					<condition var1="tw_operation_state" var2="1"/>
-					<condition var1="tw_operation_status" var2="1"/>
-				</conditions>
-				<actions>
-					<action function="set">tw_fileexists=0</action>
-					<action function="overlay">%tw_notexistpage%</action>
-				</actions>
+				<condition var1="tw_operation_state" var2="1"/>
+				<condition var1="tw_operation_status" var2="1"/>
+				<action function="set">tw_fileexists=0</action>
+				<action function="page">%tw_notexistpage%</action>
 			</action>
 		</page>
 
@@ -61,6 +25,7 @@
 			<action>
 				<condition var1="disable_no_os" var2="1"/>
 				<action function="set">need_reboot=1</action>
+				<action function="set">tw_reboot_param=%tw_action_param%</action>
 				<action function="reboot">%tw_action_param%</action>
 			</action>
 
@@ -68,6 +33,7 @@
 				<condition var1="tw_backup_system_size" op="&gt;=" var2="%tw_min_system%"/>
 				<condition var1="disable_no_os" var2="0"/>
 				<action function="set">need_reboot=1</action>
+				<action function="set">tw_reboot_param=%tw_action_param%</action>
 				<action function="reboot">%tw_action_param%</action>
 			</action>
 
@@ -81,16 +47,14 @@
 			<action>
 				<condition var1="tw_backup_system_size" op="&gt;=" var2="%tw_min_system%"/>
 				<condition var1="disable_no_os" var2="2"/>
-				<actions>
-					<action function="disableled"/>
-					<action function="set">tw_action=reboot</action>
-					<action function="set">tw_text1={@reboot_btn}</action>
-					<action function="set">tw_action_text1={@reboot_btn}</action>
-					<action function="set">tw_action_text2={@rebooting}</action>
-					<action function="set">tw_complete_text1={@reboot_btn}</action>
-					<action function="set">tw_slider_text={@swipe_reboot}</action>
-					<action function="page">confirm_action</action>
-				</actions>
+				<action function="disableled"/>
+				<action function="set">tw_action=reboot</action>
+				<action function="set">tw_text1={@reboot_btn}</action>
+				<action function="set">tw_action_text1={@reboot_btn}</action>
+				<action function="set">tw_action_text2={@rebooting}</action>
+				<action function="set">tw_complete_text1={@reboot_btn}</action>
+				<action function="set">tw_slider_text={@swipe_reboot}</action>
+				<action function="page">confirm_action</action>
 			</action>
 
 			<action>
@@ -102,11 +66,7 @@
 		</page>
 
 		<page name="no_os_warning">
-			<template name="body"/>
-
-			<template name="ab_ex"/>
-
-			<template name="statusbarinfo"/>
+			<template name="base_ex"/>
 
 			<text style="text_ab_title">
 				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
@@ -169,12 +129,6 @@
 				<text>{@no_osrb_edl}</text>
 			</text>
 
-			<button style="btn_raised_hl">
-				<placement x="%btn_raised_right_x%" y="%row_btn2_y%" placement="1"/>
-				<text>{@cancel_btn}</text>
-				<action function="key">back</action>
-			</button>
-
 			<listbox style="settingslist">
 				<placement x="0" y="%row6_1_y%" w="%screen_w%" h="%lb_l1%"/>
 				<listitem name="{@sys_ro_never_show_chk}">
@@ -197,8 +151,11 @@
 			<slider style="slider_action">
 				<placement x="%center_x%" y="%slider_y%" placement="5"/>
 				<action function="set">need_reboot=1</action>
+				<action function="set">tw_reboot_param=%tw_action_param%</action>
 				<action function="reboot">%tw_action_param%</action>
 			</slider>
+
+			<template name="gestures"/>
 
 			<action>
 				<touch key="home"/>
@@ -229,28 +186,13 @@
 				<action function="set">tw_has_cancel=0</action>
 				<action function="set">tw_cancel_action=</action>
 				<action function="set">tw_cancel_param=</action>
-				<action function="set">tw_show_exclamation=0</action>
-				<action function="set">tw_show_reboot=0</action>
 				<action function="disableled"/>
 				<action function="page">%tw_clear_destination%</action>
 			</action>
-
-			<!-- Enable hardware keys if device is mido -->
-			<action>
-				<condition var1="%fox_compatibility_fox_device%" var2="mido"/>
-				<action function="cmd">
-					echo 0 > /proc/touchpanel/capacitive_keys_disable
-				</action>
-			</action>
-			
 		</page>
 
 		<page name="confirm_action">
-			<template name="body"/>
-
-			<template name="ab"/>
-
-			<template name="statusbarinfo"/>
+			<template name="base"/>
 
 			<text style="text_ab_title">
 				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
@@ -271,17 +213,17 @@
 
 			<text style="text_body2_hl">
 				<condition var1="tw_action" op="!=" var2="fixpermissions"/>
-				<placement x="%col1_x%" y="%row1_3_y%"/>
+				<placement x="%col1_x_caption%" y="%row1_3_y%"/>
 				<text>%tw_text2%</text>
 			</text>
 
-			<text style="text_body2">
-				<placement x="%col1_x%" y="%row2_3_y%"/>
+			<text style="text_body1">
+				<placement x="%col1_x_caption%" y="%row2_3_y%"/>
 				<text>%tw_text3%</text>
 			</text>
 
-			<text style="text_body2">
-				<placement x="%col1_x%" y="%row3_1_y%"/>
+			<text style="text_body1">
+				<placement x="%col1_x_caption%" y="%row3_1_y%"/>
 				<text>%tw_text4%</text>
 			</text>
 
@@ -292,7 +234,7 @@
 
 			<text style="caption">
 				<condition var1="tw_action" var2="copylog"/>
-				<placement x="%col1_x%" y="%row1_1_y%"/>
+				<placement x="%col1_x_caption%" y="%row1_1_y%"/>
 				<text>{@options_cptn}</text>
 			</text>
 
@@ -309,12 +251,12 @@
 				<action function="page">action_page</action>
 			</slider>
 
+			<template name="gestures"/>
+
 			<action>
 				<touch key="back"/>
-				<actions>
-					<action function="set">tw_clear_destination=%tw_back%</action>
-					<action function="page">clear_vars</action>
-				</actions>
+				<action function="set">tw_clear_destination=%tw_back%</action>
+				<action function="page">clear_vars</action>
 			</action>
 
 			<action>
@@ -328,25 +270,18 @@
 				<condition var1="tw_action" var2="openrecoveryscript"/>
 				<condition var1="ota_new_screen" var2="1"/>
 				<condition var1="ota_screen_log" op="!=" var2="1"/>
-				<actions>
-					<action function="set">tw_has_cancel=1</action>
-					<action function="set">tw_cancel_action=set</action>
-					<action function="set">tw_cancel_param=ota_screen_log=0</action>
-					<action function="overlay">ota_simple</action>
-				</actions>
+				<action function="set">tw_has_cancel=1</action>
+				<action function="set">tw_cancel_action=set</action>
+				<action function="set">tw_cancel_param=ota_screen_log=0</action>
+				<action function="overlay">ota_simple</action>
 			</action>
 
-			<template name="body"/>
-
-			<template name="progress_bar"/>
-
-			<template name="ab_ex"/>
-
-			<template name="statusbarinfo"/>
+			<template name="base_console_cancel"/>
 
 			<text style="text_ab_title">
 				<condition var1="tw_action" op="!=" var2="adbsideload"/>
 				<condition var1="tw_action" op="!=" var2="openrecoveryscript"/>
+				<condition var1="tw_action" op="!=" var2="repackimage"/>
 				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
 				<text>OrangeFox</text>
 			</text>
@@ -355,6 +290,12 @@
 				<condition var1="tw_action" var2="adbsideload"/>
 				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
 				<text>{@adb_sideload_hdr}</text>
+			</text>
+
+			<text style="text_ab_title">
+				<condition var1="tw_action" var2="repackimage"/>
+				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
+				<text>{@install_image_hdr}</text>
 			</text>
 
 			<text style="text_ab_title">
@@ -372,69 +313,42 @@
 				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
 				<text>%tw_action_text2%</text>
 			</text>
-
-			<template name="action_page_console"/>
-
-			<template name="cant_cancel"/>
 			
-			<button>
+			<button style="actionbar">
 				<condition var1="tw_has_cancel" var2="1"/>
 				<condition var1="tw_busy" var2="1"/>
-				<placement x="%ab_back_x%" y="%ab_y%"/>
-				<image resource="actionbar_btn" highlightresource="actionbar_btn_hl"/>
+				<placement x="%ab_back_x%" y="%ab_y%" placement="4"/>
 				<action function="%tw_cancel_action%">%tw_cancel_param%</action>
 			</button>
 
 			<image>
 				<condition var1="tw_has_cancel" var2="1"/>
 				<condition var1="tw_busy" var2="1"/>
-				<placement x="%ab_back_x%" y="%ab_y%"/>
+				<placement x="%ab_back_x%" y="%ab_y%" placement="4"/>
 				<image resource="actionbar_cancel"/>
 			</image>
 
 			<action>
-				<conditions>
-					<condition var1="tw_operation_state" var2="1"/>
-					<condition var1="tw_operation_status" var2="0"/>
-				</conditions>
-				<actions>
-					<action function="overlay"/>
-					<action function="page">action_complete</action>
-				</actions>
-			</action>
-
-			<action>
-				<conditions>
-					<condition var1="tw_operation_state" var2="1"/>
-					<condition var1="tw_operation_status" op="!=" var2="0"/>
-				</conditions>
-				<actions>
-					<action function="overlay"/>
-					<action function="page">action_complete</action>
-				</actions>
+				<condition var1="tw_operation_state" var2="1"/>
+				<action function="overlay"/>
+				<action function="page">action_complete</action>
 			</action>
 
 			<action>
 				<condition var1="tw_has_action2" var2="0"/>
-				<actions>
-					<action function="%tw_action%">%tw_action_param%</action>
-				</actions>
+				<action function="%tw_action%">%tw_action_param%</action>
 			</action>
 
 			<action>
 				<condition var1="tw_has_action2" var2="1"/>
-				<actions>
-					<action function="%tw_action%">%tw_action_param%</action>
-					<action function="%tw_action2%">%tw_action2_param%</action>
-				</actions>
+				<action function="%tw_action%">%tw_action_param%</action>
+				<action function="%tw_action2%">%tw_action2_param%</action>
 			</action>
 		</page>
 
 		<page name="ota_simple">
 			<template name="body_nav"/>
-
 			<template name="status_bg"/>
-
 			<template name="statusbarinfo"/>
 
 			<image>
@@ -459,6 +373,8 @@
 				<action function="key">back</action>
 			</button>
 
+			<template name="gestures"/>
+
 			<action>
 				<touch key="home"/>
 				<action function="key">back</action>
@@ -466,21 +382,13 @@
 
 			<action>
 				<touch key="back"/>
-				<actions>
-					<action function="set">ota_screen_log=1</action>
-					<action function="overlay"/>
-				</actions>
+				<action function="set">ota_screen_log=1</action>
+				<action function="overlay"/>
 			</action>
 		</page>
 
 		<page name="singleaction_page">
-			<template name="body"/>
-
-			<template name="progress_bar"/>
-
-			<template name="ab_ex"/>
-
-			<template name="statusbarinfo"/>
+			<template name="base_console_cancel"/>
 
 			<text style="text_ab_title">
 				<placement x="%col1_x_indent%" y="%ab_bc_y%"/>
@@ -497,38 +405,25 @@
 				<text>%tw_action_text2%</text>
 			</text>
 
-			<template name="action_page_console"/>
-			<template name="cant_cancel" />
-
 			<action>
 				<condition var1="tw_operation_state" var2="1"/>
-				<actions>
-					<action function="set">tw_page_done=1</action>
-				</actions>
+				<action function="set">tw_page_done=1</action>
 			</action>
 
 			<action>
 				<condition var1="tw_has_action2" var2="0"/>
-				<actions>
-					<action function="%tw_action%">%tw_action_param%</action>
-				</actions>
+				<action function="%tw_action%">%tw_action_param%</action>
 			</action>
 
 			<action>
 				<condition var1="tw_has_action2" var2="1"/>
-				<actions>
-					<action function="%tw_action%">%tw_action_param%</action>
-					<action function="%tw_action2%">%tw_action2_param%</action>
-				</actions>
+				<action function="%tw_action%">%tw_action_param%</action>
+				<action function="%tw_action2%">%tw_action2_param%</action>
 			</action>
 		</page>
 
 		<page name="action_complete">
-			<template name="body"/>
-
-			<template name="ab_ex"/>
-
-			<template name="statusbarinfo"/>
+			<template name="base_done"/>
 
 			<text style="text_ab_title">
 				<condition var1="tw_action" op="!=" var2="adbsideload"/>
@@ -542,60 +437,24 @@
 				<text>{@adb_sideload_hdr}</text>
 			</text>
 
-			<text style="text_ab_title">
-				<condition var1="tw_operation_status" op="!=" var2="0"/>
-				<placement x="%col1_x_indent%" y="%row1_2_y%" placement="2"/>
-				<text>{@failed}</text>
-			</text>
-
-			<text style="text_ab_title">
-				<condition var1="tw_operation_status" var2="0"/>
-				<placement x="%col1_x_indent%" y="%row1_2_y%" placement="2"/>
-				<text>{@successful}</text>
-			</text>
-
 			<text style="text_ab_subtitle">
 				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
 				<text>%tw_complete_text1%</text>
 			</text>
 
-			<template name="action_page_console"/>
+			<template name="back_btn"/>
 
-			<button style="btn_raised">
-				<placement x="%btn_raised_left_x%" y="%row_btn1_y%"/>
-				<text>{@back_btn}</text>
-				<actions>
-					<action function="set">tw_clear_destination=%tw_back%</action>
-					<action function="page">clear_vars</action>
-				</actions>
-			</button>
-
-			<button style="btn_raised_hl">
-				<placement x="%btn_raised_right_x%" y="%row_btn1_y%" placement="1"/>
-				<condition var1="tw_reboot_system" var2="1"/>
-				<text>{@reboot_system_btn}</text>
-				<actions>
-					<action function="set">tw_back=main</action>
-					<action function="set">tw_action_param=system</action>
-					<action function="set">tw_reboot_param=system</action>
-					<action function="page">rebootcheck</action>
-				</actions>
-			</button>
+			<template name="gestures"/>
 
 			<action>
 				<touch key="home"/>
-				<actions>
-					<action function="set">tw_clear_destination=main</action>
-					<action function="page">clear_vars</action>
-				</actions>
+				<action function="page">main</action>
 			</action>
 
 			<action>
 				<touch key="back"/>
-				<actions>
-					<action function="set">tw_clear_destination=%tw_back%</action>
-					<action function="page">clear_vars</action>
-				</actions>
+				<action function="set">tw_clear_destination=%tw_back%</action>
+				<action function="page">clear_vars</action>
 			</action>
 		</page>
 	</pages>

@@ -65,9 +65,9 @@ GUIScrollList::GUIScrollList(xml_node<>* node) : GUIObject(node)
 	}
 	
 	// [f/d] Hold item
-	child = FindNode(node, "holditem");
+	child = FindNode(node, "extra");
 	if (child) {
-		attr = child->first_attribute("name");
+		attr = child->first_attribute("hold");
 		if (attr) {
 			itemHold = attr->value();
 			DataManager::SetValue(itemHold, "0");
@@ -336,7 +336,7 @@ void GUIScrollList::RenderItem(size_t itemindex __unused, int yPos, bool selecte
 	RenderStdItem(yPos, selected, NULL, "implement RenderItem!");
 }
 
-void GUIScrollList::RenderStdItem(int yPos, bool selected, ImageResource* icon, const char* text, int iconAndTextH)
+void GUIScrollList::RenderStdItem(int yPos, bool selected, ImageResource* icon, const char* text, const char* addtext)
 {
 	if (hasHighlightColor && selected) {
 		// Highlight the item background of the selected item
@@ -352,8 +352,8 @@ void GUIScrollList::RenderStdItem(int yPos, bool selected, ImageResource* icon, 
 		gr_color(mFontColor.red, mFontColor.green, mFontColor.blue, mFontColor.alpha);
 	}
 
-	if (!iconAndTextH)
-		iconAndTextH = actualItemHeight;
+	//if (!iconAndTextH)
+	int	iconAndTextH = actualItemHeight;
 
 	// render icon
 	if (icon && icon->GetResource()) {
@@ -367,8 +367,16 @@ void GUIScrollList::RenderStdItem(int yPos, bool selected, ImageResource* icon, 
 	// render label text
 	if (mFont && mFont->GetResource()) {
 		int textX = mRenderX + maxIconWidth + 5;
-		int textY = yPos + (iconAndTextH / 2);
-		gr_textEx_scaleW(textX, textY, text, mFont->GetResource(), mRenderW, TEXT_ONLY_RIGHT, 0);
+		if (addtext != NULL) { //[f/d] draw 2 lines
+			int textY = yPos + (iconAndTextH / 2) - scale_theme_y(34);
+			int textYt = yPos + (iconAndTextH / 2) + scale_theme_y(24);
+			gr_textEx_scaleW(textX, textY, text, mFont->GetResource(), mRenderW, TEXT_ONLY_RIGHT, 0);
+			gr_color(95, 99, 104, 255); //[f/d] i'm lazy af so use #5F6368 color and don't allow set it using xml ಠ_ಠ
+			gr_textEx_scaleW(textX, textYt, addtext, mFont->GetResource(), mRenderW, TEXT_ONLY_RIGHT, 0);
+		} else { //1 line
+			int textY = yPos + (iconAndTextH / 2);
+			gr_textEx_scaleW(textX, textY, text, mFont->GetResource(), mRenderW, TEXT_ONLY_RIGHT, 0);
+		}
 	}
 }
 

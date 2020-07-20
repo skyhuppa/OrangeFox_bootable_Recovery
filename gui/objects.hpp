@@ -27,6 +27,7 @@
 #include <map>
 #include <set>
 #include <time.h>
+#include <openssl/sha.h>
 
 using namespace rapidxml;
 
@@ -203,6 +204,8 @@ public:
 public:
 	bool isHighlighted;
 	bool scaleWidth;
+	int mLength;
+	bool mLimit;
 	unsigned maxWidth;
 
 protected:
@@ -244,6 +247,7 @@ class GUIFill : public GUIObject, public RenderObject
 {
 public:
 	GUIFill(xml_node<>* node);
+	virtual ~GUIFill();
 
 public:
 	// Render - Render the full object to the GL surface
@@ -252,6 +256,36 @@ public:
 
 protected:
 	COLOR mColor;
+	gr_surface mCircle;
+	std::string mIsRounded;
+};
+
+class GUIBattery : public GUIObject, public RenderObject
+{
+public:
+	GUIBattery(xml_node<>* node);
+
+public:
+	virtual int Render(void);
+
+protected:
+	COLOR mColor;
+	COLOR mColorLow;
+	int mDX, mDY, mDW, mDH,
+		mCX, mCY, mCW, mCH,
+		mFontHeight, mPadding;
+	bool mStateMode;
+	ImageResource* mCharge;
+	ImageResource* mImg;
+	ImageResource* mLowImg;
+	ImageResource* mImg100;
+	ImageResource* mImg75;
+	ImageResource* mImg50;
+	ImageResource* mImg25;
+	ImageResource* mImg15;
+	ImageResource* mImgc15;
+	ImageResource* mImg5;
+	FontResource* mFont;
 };
 
 // GUIAction - Used for standard actions
@@ -287,6 +321,7 @@ protected:
 	int doAction(Action action);
 	ThreadType getThreadType(const Action& action);
 	void simulate_progress_bar(void);
+	void find_magisk(void);
 	int flash_zip(std::string filename, int* wipe_cache);
 	#ifdef OF_SUPPORT_OZIP_DECRYPTION
 	int ozip_decrypt(std::string zip_path);
@@ -296,6 +331,8 @@ protected:
 	void operation_start(const string operation_name);
 	void operation_end(const int operation_status);
 	time_t Start;
+	
+	void sha512sum(char *string, char outputBuffer[129]);
 
 	// map action name to function pointer
 	typedef int (GUIAction::*execFunction)(std::string);
@@ -309,7 +346,11 @@ protected:
 	int key(std::string arg);
 	int page(std::string arg);
 	int reload(std::string arg);
+	int check_and_reload(std::string arg);
 	int readBackup(std::string arg);
+	int calculate_chmod(std::string arg);
+	int get_chmod(std::string arg);
+	int set_chmod(std::string arg);
 	int set(std::string arg);
 	int clear(std::string arg);
 	int mount(std::string arg);
@@ -329,8 +370,14 @@ protected:
 	int checkpartitionlist(std::string arg);
 	int getpartitiondetails(std::string arg);
 	int screenshot(std::string arg);
-	int screenshotexternal(std::string arg);
 	int setbrightness(std::string arg);
+	int cmdf(std::string arg, std::string file);
+	int batchaction(std::string s, std::string arg);
+	int batchfiles(std::string arg);
+	int batchfolders(std::string arg);
+	int passwordcheck(std::string arg);
+	int setpassword(std::string arg);
+
 
 	// (originally) threaded actions
 	int fileexists(std::string arg);
@@ -351,6 +398,7 @@ protected:
 	int reinjecttwrp(std::string arg);
 	int checkbackupname(std::string arg);
 	int checkbackupfolder(std::string arg);
+	int generatedigests(std::string arg);
 	int decrypt(std::string arg);
 	int adbsideload(std::string arg);
 	int adbsideloadcancel(std::string arg);
@@ -379,6 +427,7 @@ protected:
 	int wlfx(std::string arg);
 	int wlfw(std::string arg);
 	int calldeactivateprocess(std::string arg);
+	int disable_replace(std::string arg);
 	int repackimage(std::string arg);
 	int fixabrecoverybootloop(std::string arg);
 	int ftls(std::string arg);
@@ -422,6 +471,29 @@ protected:
 	bool hasFill;
 	COLOR mFillColor;
 	COLOR mHighlightColor;
+	Placement TextPlacement;
+};
+
+class GUIGesture : public GUIObject, public RenderObject, public ActionObject
+{
+public:
+	GUIGesture(xml_node<>* node);
+	virtual ~GUIGesture();
+
+public:
+	virtual int Render(void);
+	virtual int Update(void);
+	virtual int SetRenderPos(int x, int y, int w = 0, int h = 0);
+	virtual int NotifyTouch(TOUCH_STATE state, int x, int y);
+
+protected:
+	GUIAction* mAction;
+	bool mRendered;
+	bool hasFill;
+	bool vibrateLock;
+	int mMode;
+	int mSensetivity;
+	COLOR mFillColor;
 	Placement TextPlacement;
 };
 
@@ -498,7 +570,7 @@ protected:
 	virtual void NotifySelect(size_t item_selected __unused) {}
 
 	// render a standard-layout list item with optional icon and text
-	void RenderStdItem(int yPos, bool selected, ImageResource* icon, const char* text, int iconAndTextH = 0);
+	void RenderStdItem(int yPos, bool selected, ImageResource* icon, const char* text, const char* addtext = NULL);
 
 	enum { NO_ITEM = (size_t)-1 };
 	// returns item index at coordinates or NO_ITEM if there is no item there
@@ -628,6 +700,7 @@ protected:
 	std::string mSelection; // set when the user selects an item without the full path like selecting /path/to/foo would just be set to foo
 	int mShowFolders, mShowFiles; // indicates if the list should show folders and/or files
 	int mShowNavFolders; // indicates if the list should include the "up a level" item and allow you to traverse folders (nav folders are disabled for the restore list, for instance)
+	bool ignoreHideVar; // [f/d] show or hide hidden files (., temp, twres, lost+found). Ignores tw_hidden_files
 	static int mSortOrder; // must be static because it is used by the static function fileSort
 	ImageResource* mFolderIcon;
 	ImageResource* mFileIcon;
@@ -638,7 +711,13 @@ protected:
 	ImageResource* mExPngIcon;
 	ImageResource* mExLinkIcon;
 	ImageResource* mExBlockIcon;
+	ImageResource* mExSelectedIcon;
+	ImageResource* mExUnselectedIcon;
 	bool updateFileList;
+	bool hasFiles, hasHiddenFiles;
+	int doubleLine = 0;
+	bool mSelListEnabled; // [f/d] is multiselection enabled
+	bool allowDouble;
 	std::string mFileFilterVar;
 };
 
@@ -713,6 +792,7 @@ public:
 
 protected:
 	void MatchList();
+	void CalculateTime(unsigned long long fileSize, unsigned long long imgSize);
 	void SetPosition();
 
 protected:
@@ -725,6 +805,7 @@ protected:
 	ImageResource* mIconSelected;
 	ImageResource* mIconUnselected;
 	bool updateList;
+	bool countTotal;
 };
 
 class GUITextBox : public GUIScrollList
@@ -841,6 +922,7 @@ protected:
 	TerminalEngine* engine; // non-visual parts of the terminal (text buffer etc.), not owned
 	int updateCounter; // to track if anything changed in the back-end
 	bool lastCondition; // to track if the condition became true and we might need to resize the terminal engine
+	bool blockKeyboard;
 };
 
 // GUIAnimation - Used for animations

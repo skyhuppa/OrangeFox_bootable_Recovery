@@ -13,6 +13,8 @@ LOCAL_SRC_FILES := \
     console.cpp \
     fill.cpp \
     button.cpp \
+    gesture.cpp \
+    battery.cpp \
     checkbox.cpp \
     fileselector.cpp \
     progressbar.cpp \
@@ -31,6 +33,10 @@ LOCAL_SRC_FILES := \
     textbox.cpp \
     terminal.cpp \
     twmsg.cpp
+
+ifneq ($(TW_DELAY_TOUCH_INIT_MS),)
+    LOCAL_CFLAGS += -DTW_DELAY_TOUCH_INIT_MS=$(TW_DELAY_TOUCH_INIT_MS)
+endif
 
 ifneq ($(TWRP_CUSTOM_KEYBOARD),)
     LOCAL_SRC_FILES += $(TWRP_CUSTOM_KEYBOARD)
@@ -74,6 +80,9 @@ else
 endif
 endif
 
+ifeq ($(FOX_ENABLE_LAB),1)
+    LOCAL_CFLAGS += -DFOX_ENABLE_LAB='"1"'
+endif
 ifneq ($(TW_NO_SCREEN_BLANK),)
     LOCAL_CFLAGS += -DTW_NO_SCREEN_BLANK
 endif
@@ -107,7 +116,8 @@ LOCAL_C_INCLUDES += \
     bionic \
     system/core/base/include \
     system/core/include \
-    system/core/libpixelflinger/include
+    system/core/libpixelflinger/include \
+    external/boringssl/src/include
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
     LOCAL_C_INCLUDES += external/stlport/stlport

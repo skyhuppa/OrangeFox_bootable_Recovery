@@ -22,9 +22,8 @@
 #define _VARIABLES_HEADER_
 
 #define FOX_RECOVERY_NAME	"OrangeFox"
-#define FOX_CURRENT_DEV_STR 	"2020.06.06"
-#define FOX_MAIN_VERSION_STR    "R10.2"
-#define TW_MAIN_VERSION_STR     "3.3.9"
+#define FOX_MAIN_VERSION_STR    "R11"
+
 #define TW_VERSION_STR 		FOX_VERSION
 #define BUILD_TYPE_STR 		FOX_BUILD_TYPE
 
@@ -87,6 +86,8 @@ static int Fox_Current_ROM_IsMIUI = 0; // is the currently installed ROM a MIUI 
 #define FOX_STARTUP_SCRIPT "/sbin/foxstart.sh"
 #define FOX_PS_BIN "/FFiles/ps"
 #define FOX_NEW_MAGISKBOOT "/FFiles/magiskboot_new"
+
+#define FOX_PASS_IN_PERSIST "/persist/.fsec"
 
 // **** //
 

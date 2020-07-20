@@ -42,11 +42,13 @@
 #include "../partitions.hpp"
 #include "../twrp-functions.hpp"
 #include "../openrecoveryscript.hpp"
+#include "../twrpDigestDriver.hpp"
 
 #include "../adb_install.h"
 #include "../fuse_sideload.h"
 #include "blanktimer.hpp"
 #include "../twinstall.h"
+#include <openssl/sha.h>
 
 extern "C"
 {
@@ -185,6 +187,7 @@ GUIAction::GUIAction(xml_node <> *node):GUIObject(node)
       ADD_ACTION(key);
       ADD_ACTION(page);
       ADD_ACTION(reload);
+      ADD_ACTION(check_and_reload);
       ADD_ACTION(readBackup);
       ADD_ACTION(set);
       ADD_ACTION(clear);
@@ -208,7 +211,6 @@ GUIAction::GUIAction(xml_node <> *node):GUIObject(node)
       ADD_ACTION(getpartitiondetails);
       ADD_ACTION(screenshot);
       ADD_ACTION_EX("screenshotinternal", screenshot);
-      ADD_ACTION(screenshotexternal);
       ADD_ACTION(setbrightness);
       ADD_ACTION(fileexists);
       ADD_ACTION(killterminal);
@@ -228,6 +230,11 @@ GUIAction::GUIAction(xml_node <> *node):GUIObject(node)
       ADD_ACTION(fileextension);
       ADD_ACTION(up_a_level);
       ADD_ACTION(checkbackupfolder);
+      ADD_ACTION(calculate_chmod);
+      ADD_ACTION(get_chmod);
+      ADD_ACTION(set_chmod);
+      ADD_ACTION(setpassword);
+      ADD_ACTION(passwordcheck);
  
       // remember actions that run in the caller thread
       for (mapFunc::const_iterator it = mf.begin(); it != mf.end(); ++it)
@@ -267,8 +274,12 @@ GUIAction::GUIAction(xml_node <> *node):GUIObject(node)
       ADD_ACTION(wlfw);
       ADD_ACTION(wlfx);
       ADD_ACTION(calldeactivateprocess);
+      ADD_ACTION(disable_replace);
 
       //[f/d] Threaded actions
+      ADD_ACTION(batchfiles);
+      ADD_ACTION(batchfolders);
+      ADD_ACTION(generatedigests);
       ADD_ACTION(ftls); //ftls (foxtools) - silent cmd
    }
 
@@ -604,7 +615,7 @@ void GUIAction::operation_start(const string operation_name)
 	DataManager::SetValue("tw_operation", operation_name);
 	DataManager::SetValue("tw_operation_state", 0);
 	DataManager::SetValue("tw_operation_status", 0);
-	bool tw_ab_device = TWFunc::get_cache_dir() != NON_AB_CACHE_DIR;
+	bool tw_ab_device = TWFunc::get_log_dir() != CACHE_LOGS_DIR;
 	DataManager::SetValue("tw_ab_device", tw_ab_device);
 }
 
@@ -682,11 +693,131 @@ int GUIAction::reload(std::string arg __unused)
   return 0;
 }
 
+// [f/d] pass hashing actions: hash new pass / hash entered pass 
+int GUIAction::setpassword(std::string arg __unused)
+{
+  char sum[129];
+
+  // string to char
+  string pass_tmp2 = DataManager::GetStrValue("pass_new_1");
+  char pass_tmp[pass_tmp2.length() + 1];
+  strcpy(pass_tmp, pass_tmp2.c_str());
+
+  sha512sum(pass_tmp, sum);
+
+  //char to string
+  string pass_tmp3(sum); 
+
+  DataManager::SetValue("pass_true", pass_tmp3);
+  return 0;
+}
+
+int GUIAction::passwordcheck(std::string arg __unused)
+{
+  char sum[129];
+  string pass_tmp2 = DataManager::GetStrValue("pass_enter");
+  char pass_tmp[pass_tmp2.length() + 1];
+  strcpy(pass_tmp, pass_tmp2.c_str());
+
+  sha512sum(pass_tmp, sum);
+
+  string pass_tmp3(sum); 
+  
+  DataManager::SetValue("pass_enter_hash", pass_tmp3);
+  gui_changePage("password_check");
+  return 0;
+}
+
+
+void GUIAction::sha512sum(char *string, char outputBuffer[129])
+{
+    unsigned char hash[SHA512_DIGEST_LENGTH];
+    SHA512_CTX sha512;
+    SHA512_Init(&sha512);
+    SHA512_Update(&sha512, string, strlen(string));
+    SHA512_Final(hash, &sha512);
+    int i = 0;
+    for(i = 0; i < SHA512_DIGEST_LENGTH; i++)
+    {
+        sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
+    }
+    outputBuffer[64] = 0;
+}
+
+int GUIAction::check_and_reload(std::string arg __unused)
+{
+  if (!DataManager::GetIntValue("of_decrypt_from_menu")) //int == 0
+    return 0;
+  
+  if (TWFunc::Path_Exists(Fox_Home + "/.theme") || TWFunc::Path_Exists(Fox_Home + "/.navbar")) {
+    PageManager::RequestReload();
+    gui_changePage("reapply_settings");
+  } else {
+    //skip reload, just go to page
+    gui_changePage(DataManager::GetStrValue("of_reload_back"));
+  }
+  return 0;
+}
+
 int GUIAction::readBackup(std::string arg __unused)
 {
   string Restore_Name;
   DataManager::GetValue("tw_restore", Restore_Name);
   PartitionManager.Set_Restore_Files(Restore_Name);
+  return 0;
+}
+
+// Convert user's chmod number (e.g 0755) to checkboxes
+int GUIAction::set_chmod(std::string arg __unused)
+{
+    int checkId = 1;
+    string renamevar = DataManager::GetStrValue("tw_filemanager_rename");
+
+    for(char& c : std::string(4 - renamevar.length(), '0') + renamevar) {
+        int num = c - '0';
+        for(int val : { 4, 2, 1 }) {
+          DataManager::SetValue("chmod_id" + std::to_string(checkId), num >= val ? 1 : 0);
+          if (num >= val)
+            num -= val;
+          checkId++;
+        }
+    }
+    return 0;
+}
+
+// Get perms of tw_filename1
+int GUIAction::get_chmod(std::string arg __unused)
+{
+    struct stat st;
+    if(stat(DataManager::GetStrValue("tw_filename1").c_str(), &st) == 0) {
+      mode_t perm = st.st_mode;
+      int statchmod = 0;
+      #define sch(c,n) statchmod += (perm & c) ? n : 0
+      sch(S_IRUSR,400); sch(S_IRGRP,40); sch(S_IROTH,4);
+      sch(S_IWUSR,200); sch(S_IWGRP,20); sch(S_IWOTH,2);
+      sch(S_IXUSR,100); sch(S_IXGRP,10); sch(S_IXOTH,1);
+      sch(S_ISUID,4000); sch(S_ISGID,2000); sch(S_ISVTX,1000);
+      
+      DataManager::SetValue("tw_filemanager_rename", statchmod);
+    } else {
+      LOGINFO("Error while reading file perms; skipping");
+    }
+    return 0;
+}
+
+// Convert checkboxes to checkboxes chmod number
+int GUIAction::calculate_chmod(std::string arg __unused)
+{
+  int mult = 1, checkId = 12, chmodval = 0;
+  while (mult <= 1000) {
+    for(int val : { 1, 2, 4 }) {
+      chmodval += DataManager::GetIntValue("chmod_id" + std::to_string(checkId)) * val * mult;
+      checkId--;
+    }
+    mult *= 10;
+  }
+  
+  DataManager::SetValue("tw_filemanager_rename", std::string(4 - std::to_string(chmodval).length(), '0') + std::to_string(chmodval));
   return 0;
 }
 
@@ -961,8 +1092,19 @@ int GUIAction::queuezip(std::string arg __unused)
     {
       zip_queue_index++;
       DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
+      DataManager::SetValue("tw_q_" + to_string(zip_queue_index), DataManager::GetStrValue("tw_file"));
+      find_magisk();
     }
+    
   return 0;
+}
+
+void GUIAction::find_magisk(){ //[f/d]
+  int found = 0;
+  for (int i = 0; i < zip_queue_index; i++)
+    if (zip_queue[i] == Fox_Home_Files + "/Magisk.zip")
+      found = 1;
+  DataManager::SetValue("of_magisk_in_queue", found);
 }
 
 int GUIAction::cancelzip(std::string arg __unused)
@@ -974,7 +1116,15 @@ int GUIAction::cancelzip(std::string arg __unused)
     }
   else
     {
+      DataManager::SetValue("tw_q_" + to_string(zip_queue_index), "");
       zip_queue_index--;
+      string zip_path = zip_queue[zip_queue_index - 1];
+      size_t slashpos = zip_path.find_last_of('/');
+      DataManager::SetValue("tw_zip_location", zip_path.substr(0, slashpos));
+      DataManager::SetValue("tw_file",
+        (slashpos == string::npos) ? zip_path : zip_path.substr(slashpos + 1));
+      find_magisk();
+
       DataManager::SetValue(TW_ZIP_QUEUE_COUNT, zip_queue_index);
     }
   return 0;
@@ -1165,100 +1315,44 @@ int GUIAction::getpartitiondetails(std::string arg)
 
 int GUIAction::screenshot(std::string arg __unused)
 {
-  time_t tm;
-  char path[256];
-  int path_len;
-  uid_t uid = AID_MEDIA_RW;
-  gid_t gid = AID_MEDIA_RW;
+	time_t tm;
+	char path[256];
+	int path_len;
+	uid_t uid = AID_MEDIA_RW;
+	gid_t gid = AID_MEDIA_RW;
 
-  const std::string storage = "/sdcard";
-  if (PartitionManager.Is_Mounted_By_Path(storage))
-    {
-      snprintf(path, sizeof(path), "%s/Fox/screenshots/", storage.c_str());
-    }
-  else
-    {
-      strcpy(path, "/sdcard/Fox/screenshots/");
-    }
+	const std::string storage = DataManager::GetCurrentStoragePath();
+	if (PartitionManager.Is_Mounted_By_Path(storage)) {
+		snprintf(path, sizeof(path), "%s/Fox/screenshots/", storage.c_str());
+	} else {
+		strcpy(path, "/tmp/");
+	}
 
-  if (!TWFunc::Create_Dir_Recursive(path, 0775, uid, gid))
-    return 0;
+	if (!TWFunc::Create_Dir_Recursive(path, 0775, uid, gid))
+		return 0;
 
-  tm = time(NULL);
-  path_len = strlen(path);
+	tm = time(NULL);
+	path_len = strlen(path);
 
-  // Screenshot_2014-01-01-18-21-38.png
-  strftime(path + path_len, sizeof(path) - path_len,
-	   "Screenshot_%Y-%m-%d-%H-%M-%S.png", localtime(&tm));
+	// Screenshot_2014-01-01-18-21-38.png
+	strftime(path+path_len, sizeof(path)-path_len, "Screenshot_%Y-%m-%d-%H-%M-%S.png", localtime(&tm));
 
-  int res = gr_save_screenshot(path);
-  if (res == 0)
-    {
-      chmod(path, 0666);
-      chown(path, uid, gid);
+	int res = gr_save_screenshot(path);
+	if (res == 0) {
+		chmod(path, 0666);
+		chown(path, uid, gid);
 
-      gui_msg(Msg("screenshot_saved=Screenshot was saved to {1}") (path));
+		gui_msg(Msg("screenshot_saved=Screenshot was saved to {1}")(path));
 
-      // blink to notify that the screenshow was taken
-      gr_color(255, 255, 255, 255);
-      gr_fill(0, 0, gr_fb_width(), gr_fb_height());
-      gr_flip();
-      gui_forceRender();
-    }
-  else
-    {
-      gui_err("screenshot_err=Failed to take a screenshot!");
-    }
-  return 0;
-}
-
-int GUIAction::screenshotexternal(std::string arg __unused)
-{
-  time_t tm;
-  char path[256];
-  int path_len;
-  uid_t uid = AID_MEDIA_RW;
-  gid_t gid = AID_MEDIA_RW;
-
-  const std::string storage = "/sdcard1";
-  if (PartitionManager.Is_Mounted_By_Path(storage))
-    {
-      snprintf(path, sizeof(path), "%s/Fox/screenshots/", storage.c_str());
-    }
-  else
-    {
-      strcpy(path, "/sdcard/Fox/screenshots/");
-    }
-
-  if (!TWFunc::Create_Dir_Recursive(path, 0775, uid, gid))
-    return 0;
-
-  tm = time(NULL);
-  path_len = strlen(path);
-
-  // Screenshot_2014-01-01-18-21-38.png
-  strftime(path + path_len, sizeof(path) - path_len,
-	   "Screenshot_%Y-%m-%d-%H-%M-%S.png", localtime(&tm));
-
-  int res = gr_save_screenshot(path);
-  if (res == 0)
-    {
-      chmod(path, 0666);
-      chown(path, uid, gid);
-
-      gui_msg(Msg("screenshot_saved=Screenshot was saved to {1}") (path));
-
-      // blink to notify that the screenshot was taken
-      gr_color(255, 255, 255, 255);
-      gr_fill(0, 0, gr_fb_width(), gr_fb_height());
-      gr_flip();
-      gui_forceRender();
-    }
-  else
-    {
-      gui_err("screenshot_err=Failed to take a screenshot!");
-    }
-  return 0;
+		// blink to notify that the screenshot was taken
+		gr_color(255, 255, 255, 255);
+		gr_fill(0, 0, gr_fb_width(), gr_fb_height());
+		gr_flip();
+		gui_forceRender();
+	} else {
+		gui_err("screenshot_err=Failed to take a screenshot!");
+	}
+	return 0;
 }
 
 int GUIAction::setbrightness(std::string arg)
@@ -1673,6 +1767,18 @@ int GUIAction::cancelbackup(std::string arg __unused)
       if (op_status != 0)
 	op_status = 1;		// failure
     }
+
+  return 0;
+}
+
+int GUIAction::generatedigests(std::string arg __unused)
+{
+  int op_status = 0;
+
+  //Generate digests for latest backup
+  operation_start("Generate digests");
+  op_status = twrpDigestDriver::Run_Digest();
+  operation_end(op_status);
 
   return 0;
 }
@@ -2534,6 +2640,21 @@ int GUIAction::calldeactivateprocess(std::string arg __unused)
   return 0;
 }
 
+int GUIAction::disable_replace(std::string arg __unused)
+{
+  operation_start("Disable stocker recovery's replace");
+  if (simulate)
+    {
+      	simulate_progress_bar();
+    }
+  else
+  {
+    TWFunc::Disable_Stock_Recovery_Replace();
+  }
+  operation_end(0);
+  return 0;
+}
+
 int GUIAction::disableled(std::string arg __unused)
 {
   DataManager::Leds(false);
@@ -2682,4 +2803,39 @@ int GUIAction::fixabrecoverybootloop(std::string arg __unused)
 exit:
 	operation_end(op_status);
 	return 0;
+}
+
+int GUIAction::batchfiles(std::string arg)
+{
+  return batchaction("of_batch_files", arg);
+}
+
+int GUIAction::batchfolders(std::string arg)
+{
+  return batchaction("of_batch_folders", arg);
+}
+
+int GUIAction::cmdf(std::string arg, std::string file)
+{
+  char buff[1024];
+  sprintf(buff, gui_parse_text(arg).c_str(), file.c_str());
+  return terminalcommand(std::string(buff));
+}
+
+int GUIAction::batchaction(std::string s, std::string arg)
+{
+  DataManager::GetValue(s, s);
+  if (s.empty()) return 0;
+  s = s.substr(0, s.size()-1); //remove last delimiter ("/")
+  std::string delimiter = "/";
+
+  size_t pos = 0;
+  std::string token;
+  while ((pos = s.find(delimiter)) != std::string::npos) {
+      token = s.substr(0, pos);
+      cmdf(arg, token);
+      s.erase(0, pos + delimiter.length());
+  }
+  cmdf(arg, s);
+  return 0;
 }

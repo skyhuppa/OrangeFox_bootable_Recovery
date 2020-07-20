@@ -78,8 +78,14 @@ static void Print_Prop(const char *key, const char *name, void *cookie)
 
 int main(int argc, char **argv)
 {
-   //[f/d] Disable LED as early as possible
-   DataManager::Leds(false);
+  //[f/d] Disable LED as early as possible
+  DataManager::Leds(false);
+
+	//Also disable adbd
+	#ifdef FOX_ADVANCED_SECURITY
+  property_set("ctl.stop", "adbd");
+  property_set("orangefox.adb.status", "0");
+	#endif
 
   // Recovery needs to install world-readable files, so clear umask
   // set by init
@@ -360,6 +366,11 @@ int main(int argc, char **argv)
 	LOGINFO("Backup of OrangeFox ramdisk done.\n");
 #endif
 
+#ifdef FOX_ADVANCED_SECURITY
+  property_set("ctl.stop", "adbd");
+  property_set("orangefox.adb.status", "0");
+#endif
+
 	// Offer to decrypt if the device is encrypted
 	if (DataManager::GetIntValue(TW_IS_ENCRYPTED) != 0) {
 		LOGINFO("Is encrypted, do decrypt page first\n");
@@ -371,7 +382,9 @@ int main(int argc, char **argv)
 			gui_loadCustomResources();
 			// OrangeFox - make note of this decryption
 			DataManager::SetValue("OTA_decrypted", "1");
-			DataManager::SetValue("used_custom_encryption", "1");
+			#ifdef FOX_OLD_DECRYPT_RELOAD
+				DataManager::SetValue("used_custom_encryption", "1");
+			#endif
 			usleep(16);
 		}
 	} else if (datamedia) {
@@ -397,7 +410,9 @@ int main(int argc, char **argv)
   	TWFunc::Setup_Verity_Forced_Encryption();
 
 	// Run any outstanding OpenRecoveryScript
-	std::string cacheDir = TWFunc::get_cache_dir();
+	std::string cacheDir = TWFunc::get_log_dir();
+	if (cacheDir == DATA_LOGS_DIR)
+		cacheDir = "/data/cache";
 	std::string orsFile = cacheDir + "/recovery/openrecoveryscript";
 	
 	if (TWFunc::Path_Exists(SCRIPT_FILE_TMP) || (DataManager::GetIntValue(TW_IS_ENCRYPTED) == 0 && TWFunc::Path_Exists(orsFile))) {
@@ -407,6 +422,11 @@ int main(int argc, char **argv)
   	// call OrangeFox startup code
   	TWFunc::OrangeFox_Startup();
 
+#ifdef FOX_ADVANCED_SECURITY
+	LOGINFO("ADB & MTP disabled by maintainer\n");
+	DataManager::SetValue("fox_advanced_security", "1");
+  DataManager::SetValue("tw_mtp_enabled", 0);
+#else
 #ifdef TW_HAS_MTP
 	char mtp_crash_check[PROPERTY_VALUE_MAX];
 	property_get("mtp.crash_check", mtp_crash_check, "0");
@@ -428,6 +448,7 @@ int main(int argc, char **argv)
 		LOGINFO("OrangeFox crashed; disabling MTP as a precaution.\n");
 		PartitionManager.Disable_MTP();
 	}
+#endif
 #endif
 
 #ifndef TW_OEM_BUILD
@@ -472,17 +493,32 @@ int main(int argc, char **argv)
   adb_bu_fifo->threadAdbBuFifo();
 
   // LOGINFO("OrangeFox: Reloading theme to apply generated theme on sdcard - again...\n");
-  if (DataManager::GetStrValue("used_custom_encryption") == "1")
-    {
-       if (TWFunc::Path_Exists(Fox_Home + "/.theme")) // using custom themes
+
+// run the postrecoveryboot script here
+TWFunc::RunFoxScript("/sbin/postrecoveryboot.sh");
+DataManager::RestorePasswordBackup();
+
+#ifdef FOX_OLD_DECRYPT_RELOAD
+  LOGINFO("Using R10 way to reload theme.\n");
+  if (DataManager::GetStrValue("used_custom_encryption") == "1") {
+     if (TWFunc::Path_Exists(Fox_Home + "/.theme") || TWFunc::Path_Exists(Fox_Home + "/.navbar")) // using custom themes
          PageManager::RequestReload();
+  }
+#else
+  if (DataManager::GetStrValue("data_decrypted") == "1")
+  {
+	//[f/d] Start UI using reapply_settings page (executed on recovery startup)
+	if (TWFunc::Path_Exists(Fox_Home + "/.theme") || TWFunc::Path_Exists(Fox_Home + "/.navbar")) {
+  		DataManager::SetValue("of_reload_back", "main");
+		PageManager::RequestReload();
+    	gui_startPage("reapply_settings", 1, 0);
+	} else {
+		gui_start();
     }
-
-  // run the postrecoveryboot script here
-  TWFunc::RunFoxScript("/sbin/postrecoveryboot.sh");
-
-  // Launch the main GUI
-  gui_start();
+  }
+  else
+#endif
+	gui_start(); // Launch the main GUI
 
 #ifndef TW_OEM_BUILD
 
@@ -493,8 +529,7 @@ int main(int argc, char **argv)
 	// Reboot
 	TWFunc::Update_Intent_File(Send_Intent);
 	delete adb_bu_fifo;
-	if (!TWFunc::Is_Data_Wiped("/data"))
-		TWFunc::Update_Log_File();
+	TWFunc::Update_Log_File();
 	gui_msg(Msg("rebooting=Rebooting..."));
 	string Reboot_Arg;
 	DataManager::GetValue("tw_reboot_arg", Reboot_Arg);
