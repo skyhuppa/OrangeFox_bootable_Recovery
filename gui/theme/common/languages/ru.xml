@@ -1248,5 +1248,7 @@
 		<string name="custom_settings">Настройки для %fox_compatibility_fox_device%</string>
 		<string name="custom_settings_title">Настройки для %fox_compatibility_fox_device%</string>
 		<string name="tap_to_show">Нажмите, чтобы показать</string>
+		
+		<string name="batch_progress">Выполнено</string>
 	</resources>
 </language>

@@ -1939,7 +1939,6 @@
 			<action>
 				<condition var1="tw_operation_state" var2="1"/>
 				<action function="set">tw_back=filemanagerlist</action>
-				<action function="set">tw_complete_text1={@fm_complete}</action>
 				<action function="page">filemanagercomplete</action>
 			</action>
 			
@@ -2133,10 +2132,10 @@
 				<text>%tw_fm_text1%</text>
 			</text>
 			
-			<text style="text_ab_subtitle_lim">
+			<text style="text_ab_subtitle">
 				<condition var1="of_is_batch" var2="1"/>
 				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
-				<text>{@batch_files_folders}</text>
+				<text>{@batch_progress}: %of_batch_done%/%of_batch_count%</text>
 			</text>
 			
 			<text style="text_ab_subtitle_lim">			
@@ -2148,7 +2147,6 @@
 			<action>
 				<condition var1="tw_operation_state" var2="1"/>
 				<action function="set">tw_back=filemanagerlist</action>
-				<action function="set">tw_complete_text1={@fm_complete}</action>
 				<action function="page">filemanagercomplete</action>
 			</action>
 
@@ -2190,8 +2188,15 @@
 			</text>
 
 			<text style="text_ab_subtitle">
+				<condition var1="of_is_batch" op="!=" var2="1"/>
 				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
-				<text>%tw_complete_text1%</text>
+				<text>{@fm_complete}</text>
+			</text>
+			
+			<text style="text_ab_subtitle">
+				<condition var1="of_is_batch" var2="1"/>
+				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
+				<text>{@batch_progress}: %of_batch_done%/%of_batch_count%</text>
 			</text>
 
 			<template name="back_btn"/>

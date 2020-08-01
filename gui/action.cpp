@@ -2861,6 +2861,8 @@ int GUIAction::batch(std::string arg __unused)
   operation_start("BatchCommandOutput");
   int op_status = 0;
   std::string list, cmd;
+  int fileCount =  DataManager::GetIntValue("of_batch_count"),
+      filesDone = 0;
 
   if (simulate) {
     simulate_progress_bar();
@@ -2869,6 +2871,8 @@ int GUIAction::batch(std::string arg __unused)
 
     DataManager::GetValue("of_batch_files", list);
     DataManager::GetValue("of_batch_files_cmd", cmd);
+    DataManager::SetValue("of_batch_done", "0");
+    DataManager::SetValue("ui_progress", "0");
   
     for (int i = 0; i <= 1; i++) {
       LOGINFO("Process list: %s\n", list.c_str());
@@ -2882,9 +2886,17 @@ int GUIAction::batch(std::string arg __unused)
             token = list.substr(0, pos);
             op_status = cmdf(cmd, token);
             if (op_status == 1) break;
+            filesDone++;
+            DataManager::SetValue("ui_progress", (100 / fileCount) * filesDone);
+            DataManager::SetValue("of_batch_done", filesDone);
             list.erase(0, pos + delimiter.length());
         }
-        if (op_status == 0) cmdf(cmd, list);
+        if (op_status == 0) { //repeat again
+          op_status = cmdf(cmd, list);
+          filesDone++;
+          DataManager::SetValue("ui_progress", (100 / fileCount) * filesDone);
+          DataManager::SetValue("of_batch_done", filesDone);
+        }
       }
 
       //repeat code with new vars
