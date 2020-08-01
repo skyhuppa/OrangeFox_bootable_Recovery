@@ -1854,9 +1854,10 @@
 			<listbox>
 				<placement x="0" y="%row2_2a_y%" w="%screen_w%" h="%lb_l10%"/>
 				<data name="tw_artype"/>
-				<listitem name="ZIP">0<condition var1="tw_fm_isfolder" var2="0"/></listitem>
 				<listitem name="TAR">1<condition var1="tw_fm_isfolder" var2="1"/></listitem>
 				<listitem name="CPIO">2<condition var1="tw_fm_isfolder" var2="1"/></listitem>
+				<listitem name="ZIP">0<condition var1="tw_fm_isfolder" var2="1"/></listitem>
+				<listitem name="ZIP">0<condition var1="tw_fm_isfolder" var2="0"/></listitem>
 				<listitem name="TAR">1<condition var1="tw_fm_isfolder" var2="0"/><condition var1="tw_extract_action" var2="0"/></listitem>
 				<listitem name="CPIO">2<condition var1="tw_fm_isfolder" var2="0"/><condition var1="tw_extract_action" var2="0"/></listitem>
 				<listitem name="GZIP">3<condition var1="tw_fm_isfolder" var2="0"/></listitem>
@@ -1977,8 +1978,22 @@
 			<action>
 				<condition var1="tw_artype" var2="0"/>
 				<condition var1="tw_extract_action" var2="1"/>
+				<condition var1="tw_fm_isfolder" var2="1"/>
+				<condition var1="tw_hold" var2="1"/>
+				<action function="terminalcommand">
+				cd '%tw_filename1%'; [ -x /sbin/zip ] && zip -r%tw_pack_lvl% '%tw_filename1%.zip' . || echo "- Error - zip binary not found";
+				</action>
+				<!--action function="terminalcommand">
+				[ -x /sbin/zip ] && zip -r%tw_pack_lvl% '%tw_filename1%.zip' $(basename '%tw_filename1%') || echo "- Error - zip binary not found";
+				</action-->
+				<action function="set">tw_extract_action=0</action>
+			</action>
+
+			<action>
+				<condition var1="tw_artype" var2="0"/>
+				<condition var1="tw_extract_action" var2="1"/>
 				<condition var1="tw_fm_isfolder" op="!=" var2="1"/>
-				<action function="terminalcommand">pigz -%tw_pack_lvl%vKf '%tw_filename1%';</action>
+				<action function="terminalcommand">[ -x /sbin/zip ] && zip -j -%tw_pack_lvl% '%tw_filename1%.zip' '%tw_filename1%' || pigz -%tw_pack_lvl%vkKf '%tw_filename1%';</action>
 				<action function="set">tw_extract_action=0</action>
 			</action>
 
@@ -2119,6 +2134,13 @@
 			</text>
 			
 			<text style="text_ab_subtitle_lim">
+				<condition var1="of_is_batch" var2="1"/>
+				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
+				<text>{@batch_files_folders}</text>
+			</text>
+			
+			<text style="text_ab_subtitle_lim">			
+				<condition var1="of_is_batch" op="!=" var2="1"/>
 				<placement x="%col1_x_indent%" y="%row1_2_y%"/>
 				<text>%tw_filename1%</text>
 			</text>
@@ -2145,15 +2167,17 @@
 			<action>
 				<condition var1="of_is_batch" var2="1"/>
 				<condition var1="tw_include_text3" var2="0"/>
-				<action function="batchfiles"  >%of_batch_cmd_f% '%tw_file_location1%/%%s'</action>
-				<action function="batchfolders">%of_batch_cmd_d% '%tw_file_location1%/%%s'</action>
+				<action function="set">of_batch_files_cmd=%of_batch_cmd_f% '%tw_file_location1%/%%s'</action>
+				<action function="set">of_batch_folders_cmd=%of_batch_cmd_d% '%tw_file_location1%/%%s'</action>
+				<action function="batch"/>
 			</action>
 
 			<action>
 				<condition var1="of_is_batch" var2="1"/>
 				<condition var1="tw_include_text3" var2="1"/>
-				<action function="batchfiles"  >%of_batch_cmd_f% '%tw_file_location1%/%%s' '%tw_fm_text3%'</action>
-				<action function="batchfolders">%of_batch_cmd_d% '%tw_file_location1%/%%s' '%tw_fm_text3%'</action>
+				<action function="set">of_batch_files_cmd=%of_batch_cmd_f% '%tw_file_location1%/%%s' '%tw_fm_text3%'</action>
+				<action function="set">of_batch_folders_cmd=%of_batch_cmd_d% '%tw_file_location1%/%%s' '%tw_fm_text3%'</action>
+				<action function="batch"/>
 			</action>
 		</page>
 
