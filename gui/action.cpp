@@ -312,6 +312,7 @@ GUIAction::GUIAction(xml_node <> *node):GUIObject(node)
   if (child)
     {
       attr = child->first_attribute("key");
+		  if (!attr) attr = child->first_attribute("hkey");
       if (attr)
 	{
 	  std::vector < std::string > keys =
@@ -319,7 +320,7 @@ GUIAction::GUIAction(xml_node <> *node):GUIObject(node)
 	  for (size_t i = 0; i < keys.size(); ++i)
 	    {
 	      const int key = getKeyByName(keys[i]);
-	      mKeys[key] = false;
+	      mKeys[std::string(attr->name()) == "hkey" ? key + 200 : key] = false;
 	    }
 	}
       else
@@ -367,9 +368,15 @@ int GUIAction::NotifyKey(int key, bool down)
   // so they don't trigger one-button actions and reset mKeys pressed status
   if (mKeys.size() == 1)
     {
-      if (!down && prevState)
+		  if ((!down && prevState) || mime > 500)
 	{
 	  doActions();
+			if (mime) {
+#ifndef TW_NO_HAPTICS
+				DataManager::Vibrate("tw_button_vibrate");
+#endif
+				mime = 0;
+			}
 	  return 0;
 	}
     }
@@ -390,6 +397,12 @@ int GUIAction::NotifyKey(int key, bool down)
 	}
 
       doActions();
+      if (mime) {
+#ifndef TW_NO_HAPTICS
+			  DataManager::Vibrate("tw_button_vibrate");
+#endif
+			  mime = 0;
+		  }
       return 0;
     }
 
@@ -2526,7 +2539,8 @@ int GUIAction::setlanguage(std::string arg __unused)
 
 int GUIAction::togglebacklight(std::string arg __unused)
 {
-  blankTimer.toggleBlank();
+	if (!mime)
+    blankTimer.toggleBlank();
   return 0;
 }
 
