@@ -68,12 +68,12 @@ else
 endif
 
 ifeq ($(OF_AB_DEVICE),1)
-    LOCAL_CFLAGS += -DOF_AB_DEVICE='"1"'
     LOCAL_CFLAGS += -DOF_USE_MAGISKBOOT_FOR_ALL_PATCHES='"1"'
     LOCAL_CFLAGS += -DOF_USE_MAGISKBOOT='"1"'
-    export OF_AB_DEVICE=1
     export OF_USE_MAGISKBOOT_FOR_ALL_PATCHES=1
     export OF_USE_MAGISKBOOT=1
+    LOCAL_CFLAGS += -DOF_AB_DEVICE='"1"'
+    export OF_AB_DEVICE=1
 endif
 
 ifeq ($(OF_VANILLA_BUILD),1)
@@ -503,7 +503,6 @@ ifeq ($(AB_OTA_UPDATER),true)
     LOCAL_CFLAGS += -DAB_OTA_UPDATER=1
     LOCAL_SHARED_LIBRARIES += libhardware android.hardware.boot@1.0
     LOCAL_REQUIRED_MODULES += libhardware
-    LOCAL_CFLAGS += -DOF_AB_DEVICE=1
     export OF_AB_DEVICE=1
     export OF_USE_MAGISKBOOT_FOR_ALL_PATCHES=1
     export OF_USE_MAGISKBOOT=1
