@@ -450,6 +450,10 @@ void TWPartitionManager::Output_Partition_Logging(void)
 	   property_set("orangefox.system.mount_point", Part->Mount_Point.c_str());
 	   property_set("orangefox.system.block_device", Part->Actual_Block_Device.c_str());	
 	}
+	else if (Part->Mount_Point == "/product") {
+	   TWFunc::Fox_Property_Set("orangefox.product.mount_point", Part->Mount_Point);
+	   TWFunc::Fox_Property_Set("orangefox.product.block_device", Part->Actual_Block_Device);
+	}
     }
   /*
   for (iter = Partitions.begin(); iter != Partitions.end(); iter++)
