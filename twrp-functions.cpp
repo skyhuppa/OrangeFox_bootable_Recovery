@@ -1563,8 +1563,10 @@ void TWFunc::Fixup_Time_On_Boot(const string & time_paths)
 	 if (DataManager::GetValue("fox_epoch_drift", stored_drift) < 0) // read from .foxs
 	 	stored_drift = 0;
 	 
+	 #ifndef OF_DEVICE_WITHOUT_PERSIST
 	 if (TWFunc::read_file (epoch_drift_file, drift) != 0) // read from epoch drift file
 	 	drift = 0;
+	 #endif
 	 
 	 // what have we succeeded in reading?
          if ((drift > 0) || (stored_drift > 0)) 
@@ -3238,7 +3240,7 @@ bool TWFunc::Repack_Image(string mount_point)
   else if (result == "0221")
     local = "lz4 -9";
   else if (result == "5d00" || result == "5d0")
-    local = "lzma -2c";
+    local = "lzma -6c";
   else if (result == "894c")
     local = "lzop -9c";
   else if (result == "fd37")
@@ -4126,11 +4128,8 @@ bool TWFunc::DontPatchBootImage(void)
 std::string TWFunc::get_log_dir() {
 	if (PartitionManager.Find_Partition_By_Path(CACHE_LOGS_DIR) == NULL) {
 		if (PartitionManager.Find_Partition_By_Path(DATA_LOGS_DIR) == NULL) {
-			if (PartitionManager.Find_Partition_By_Path(PERSIST_LOGS_DIR) == NULL) {
-				LOGINFO("Unable to find a directory to store TWRP logs.");
-				return "";
-			}
-			return PERSIST_LOGS_DIR;
+			LOGINFO("Unable to find a directory to store OrangeFox logs.");
+			return "";
 		} else {
 			return DATA_LOGS_DIR;
 		}
@@ -4219,7 +4218,7 @@ void TWFunc::Deactivation_Process(void)
 {
   if (TWFunc::To_Skip_OrangeFox_Process())
      {
-	gui_print_color("warning", "\nOrangeFox: Skipping the OrangeFox Process.\n");
+	LOGINFO("\nOrangeFox: Skipping the OrangeFox Process.\n");
 	New_Fox_Installation = 0;
 	Fox_Force_Deactivate_Process = 0;
 	DataManager::SetValue(FOX_FORCE_DEACTIVATE_PROCESS, 0);
@@ -4693,7 +4692,7 @@ string rom_finger_print = "";
   if (!rom_finger_print.empty())
      {
   	LOGINFO("- Using the ROM's fingerprint (%s)\n", rom_finger_print.c_str());
-  	Exec_Cmd("/sbin/resetprop ro.build.fingerprint " + rom_finger_print);
+  	TWFunc::Fox_Property_Set("ro.build.fingerprint", rom_finger_print);
      }
   else LOGINFO("- ROM fingerprint not available\n");
 }
@@ -4839,4 +4838,40 @@ string TWFunc::find_phrase(std::string filename, std::string search)
     }
   return str;
 }
+
+string TWFunc::Fox_Property_Get(string Prop_Name) {
+	char ret[PROPERTY_VALUE_MAX + PROPERTY_VALUE_MAX]; // allow some extra room
+	memset(ret, 0, sizeof(ret));
+	property_get(Prop_Name.c_str(), ret, "");
+   	std::string res = ret;
+   	return res;
+}
+
+int TWFunc::Fox_Property_Set(const std::string Prop_Name, const std::string Value) {
+	int ret;
+    	usleep(128);
+	string tmp = "\"";
+	string cmd = "/sbin/resetprop";
+
+  	if (!Path_Exists(cmd))
+    		cmd = "/system/bin/resetprop";
+
+  	if (!Path_Exists(cmd))
+    		cmd = "/system/bin/setprop";
+
+    	if (Path_Exists(cmd)) {
+  	    ret = Exec_Cmd(cmd + " " + Prop_Name + " " + tmp + Value + tmp);
+    	}
+    	else
+    	   ret = property_set(Prop_Name.c_str(), Value.c_str());
+
+    	usleep(4096);
+
+    	return ret;
+}
+
+bool TWFunc::Has_Dynamic_Partitions(void) {
+	return (Fox_Property_Get("ro.boot.dynamic_partitions") == "true");
+}
+
 //

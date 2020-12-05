@@ -612,8 +612,10 @@ bool TWPartition::Process_Fstab_Line(const char *fstab_line, bool Display_Error,
 		bool mounted = Is_Mounted();
 		if (mounted || Mount(false)) {
 			// Read the backup settings file
+			#ifndef OF_DEVICE_WITHOUT_PERSIST
 			DataManager::LoadPersistValues();
 			DataManager::FindPasswordBackup();
+			#endif
 			TWFunc::Fixup_Time_On_Boot("/persist/time/");
 			if (!mounted)
 				UnMount(false);
@@ -1187,9 +1189,13 @@ void TWPartition::Setup_Data_Media() {
 		DataManager::SetValue("tw_has_internal", 1);
 		DataManager::SetValue("tw_has_data_media", 1);
 		backup_exclusions.add_absolute_dir("/data/data/com.google.android.music/files");
+		backup_exclusions.add_absolute_dir("/data/cache");
+		// -- extra excludes, to address various causes of "error 255"
 		backup_exclusions.add_absolute_dir("/data/per_boot"); // DJ9,14Jan2020 - exclude this dir to prevent "error 255" on AOSP ROMs that create and lock it
 		backup_exclusions.add_absolute_dir("/data/extm"); // DJ9,5July2020 - exclude this dir to prevent "error 255" on MIUI 12 ROMs
-		backup_exclusions.add_absolute_dir("/data/cache");
+		backup_exclusions.add_absolute_dir("/data/bootchart"); // DJ9,3Aug2020 - exclude this dir to error 255
+		backup_exclusions.add_absolute_dir("/data/vendor/dumpsys"); // DJ9,3Aug2020 - exclude this dir to error 255
+		// ---
 		wipe_exclusions.add_absolute_dir(Mount_Point + "/misc/vold"); // adopted storage keys
 		ExcludeAll(Mount_Point + "/.layout_version");
 		ExcludeAll(Mount_Point + "/system/storage.xml");

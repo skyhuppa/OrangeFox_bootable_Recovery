@@ -288,28 +288,36 @@ int DataManager::LoadValues(const string & filename)
 
 // Executed when /persist is mounted
 int DataManager::FindPasswordBackup(void) {
+  #ifndef OF_DEVICE_WITHOUT_PERSIST
   if (TWFunc::Path_Exists(FOX_PASS_IN_PERSIST)) {
-    bPassEnabled = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "use_pass");
-    bPassPass = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "pass_true");
-    bPassType = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "pass_type");
+    bPassEnabled = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "fox_use_pass");
+    bPassPass = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "fox_pass_true");
+    bPassType = TWFunc::File_Property_Get(FOX_PASS_IN_PERSIST, "fox_pass_type");
 		LOGINFO("PassBak: Found backup\n");
   }
+  #endif
   return 0;
 }
 
 // Executed after .foxs is (not) loaded
 int DataManager::RestorePasswordBackup(void) {
-  if (DataManager::GetStrValue("use_pass") == "0") {
-    DataManager::SetValue("use_pass", bPassEnabled);
-    DataManager::SetValue("pass_true", bPassPass);
-    DataManager::SetValue("pass_type", bPassType);
+  #ifndef OF_DEVICE_WITHOUT_PERSIST
+  if (DataManager::GetStrValue("fox_use_pass") == "0") {
+    DataManager::SetValue("fox_use_pass", bPassEnabled);
+    DataManager::SetValue("fox_pass_true", bPassPass);
+    DataManager::SetValue("fox_pass_type", bPassType);
 		LOGINFO("PassBak: Loaded backup\n");
   }
+  #endif
   return 0;
 }
 
 int DataManager::LoadPersistValues(void)
 {
+#ifdef OF_DEVICE_WITHOUT_PERSIST
+	//LOGINFO("OF_DEVICE_WITHOUT_PERSIST is set - avoiding /persist...\n");
+	return -1;
+#endif
   static bool loaded = false;
   string dev_id;
 
@@ -355,6 +363,8 @@ int DataManager::Flush()
 int DataManager::SaveValues()
 {
 #ifndef TW_OEM_BUILD
+
+  #ifndef OF_DEVICE_WITHOUT_PERSIST
   if (PartitionManager.Mount_By_Path("/persist", false))
     {
       mPersist.SetFile(PERSIST_SETTINGS_FILE);
@@ -365,15 +375,17 @@ int DataManager::SaveValues()
       LOGINFO("Saved settings file values to %s\n", PERSIST_SETTINGS_FILE);
 
       ofstream file;
+
       file.open(FOX_PASS_IN_PERSIST, std::ofstream::out | std::ofstream::trunc);
       if (file.is_open()) {
-        file << "use_pass="    + DataManager::GetStrValue("use_pass") +
-                "\npass_true=" + DataManager::GetStrValue("pass_true") +
-                "\npass_type=" + DataManager::GetStrValue("pass_type");
+        file << "fox_use_pass="    + DataManager::GetStrValue("fox_use_pass") +
+                "\nfox_pass_true=" + DataManager::GetStrValue("fox_pass_true") +
+                "\nfox_pass_type=" + DataManager::GetStrValue("fox_pass_type");
         LOGINFO("PassBak: Created backup\n");
         file.close();
       } else LOGINFO("PassBak: Failed to backup\n");
     }
+  #endif
 
   if (mBackingFile.empty())
     return -1;

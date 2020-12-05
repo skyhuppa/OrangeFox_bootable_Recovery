@@ -74,6 +74,11 @@
 					<icon res="bs_btn_archive"/>
 					<action function="page">fox_modules</action>
 				</listitem>
+				<listitem name="{@custom_settings}">
+					<condition var1="fileexists" var2="/sbin/maintainer.xml"/>
+					<icon res="maintainer"/>
+					<action function="page">maintainer</action>
+				</listitem>
 				<listitem name="{@reboot_btn}">
 					<icon res="bs_adv_reboot"/>
 					<action function="page">reboot</action>
@@ -179,7 +184,7 @@
 
 			<button style="actionbar">
 				<condition var1="of_flashlight_enable" var2="1"/>
-				<condition var1="use_pass" var2="1"/>
+				<condition var1="fox_use_pass" var2="1"/>
 				<placement x="%ab_btn3_x%" y="%ab_y%" placement="4"/>
 				<action function="set">pass_open=0</action>
 				<action function="page">main</action>
@@ -187,14 +192,14 @@
 
 			<image>
 				<condition var1="of_flashlight_enable" var2="1"/>
-				<condition var1="use_pass" var2="1"/>
+				<condition var1="fox_use_pass" var2="1"/>
 				<placement x="%ab_btn3_x%" y="%ab_y%" placement="4"/>
 				<image resource="actionbar_encr_ena"/>
 			</image>
 
 			<button style="actionbar">
 				<condition var1="of_flashlight_enable" op="!=" var2="1"/>
-				<condition var1="use_pass" var2="1"/>
+				<condition var1="fox_use_pass" var2="1"/>
 				<placement x="%ab_btn2_x%" y="%ab_y%" placement="4"/>
 				<action function="set">pass_open=0</action>
 				<action function="page">main</action>
@@ -202,7 +207,7 @@
 
 			<image>
 				<condition var1="of_flashlight_enable" op="!=" var2="1"/>
-				<condition var1="use_pass" var2="1"/>
+				<condition var1="fox_use_pass" var2="1"/>
 				<placement x="%ab_btn2_x%" y="%ab_y%" placement="4"/>
 				<image resource="actionbar_encr_ena"/>
 			</image>
