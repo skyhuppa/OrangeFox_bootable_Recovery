@@ -350,6 +350,7 @@ int TWPartitionManager::Process_Fstab(string Fstab_Filename, bool Display_Error,
 				}
 			}
 		} else {
+			Set_FDE_Encrypt_Status();
 			int password_type = cryptfs_get_password_type();
 			if (password_type == CRYPT_TYPE_DEFAULT) {
 				LOGINFO("Device is encrypted with the default password, attempting to decrypt.\n");
@@ -2199,13 +2200,9 @@ int TWPartitionManager::Decrypt_Device(string Password)
 
   property_set("orangefox.mount_to_decrypt", "1");
   property_get("ro.crypto.state", crypto_state, "error");
-  if (strcmp(crypto_state, "error") == 0)
-    {
-      property_set("ro.crypto.state", "encrypted");
-      property_set("ro.crypto.type", "block");
-      // Sleep for a bit so that services can start if needed
-      sleep(1);
-    }
+  if (strcmp(crypto_state, "error") == 0) {
+	Set_FDE_Encrypt_Status();
+   }
 
   if (DataManager::GetIntValue(TW_IS_FBE))
     {
@@ -4794,5 +4791,13 @@ bool TWPartitionManager::is_MTP_Enabled(void) {
      return false;
 }
 #endif
+
+int TWPartitionManager::Set_FDE_Encrypt_Status(void) {
+	property_set("ro.crypto.state", "encrypted");
+	property_set("ro.crypto.type", "block");
+	// Sleep for a bit so that services can start if needed
+	sleep(1);
+	return 0;
+}
 
 //*
