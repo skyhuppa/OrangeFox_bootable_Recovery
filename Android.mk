@@ -68,12 +68,12 @@ else
 endif
 
 ifeq ($(OF_AB_DEVICE),1)
-    LOCAL_CFLAGS += -DOF_AB_DEVICE='"1"'
     LOCAL_CFLAGS += -DOF_USE_MAGISKBOOT_FOR_ALL_PATCHES='"1"'
     LOCAL_CFLAGS += -DOF_USE_MAGISKBOOT='"1"'
-    export OF_AB_DEVICE=1
     export OF_USE_MAGISKBOOT_FOR_ALL_PATCHES=1
     export OF_USE_MAGISKBOOT=1
+    LOCAL_CFLAGS += -DOF_AB_DEVICE='"1"'
+    export OF_AB_DEVICE=1
 endif
 
 ifeq ($(OF_VANILLA_BUILD),1)
@@ -447,6 +447,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 23; echo $$?),0)
     LOCAL_SHARED_LIBRARIES += libstlport
     LOCAL_CFLAGS += -DTW_NO_SHA2_LIBRARY
 endif
+LOCAL_CFLAGS += -DSDK_VERSION=$(PLATFORM_SDK_VERSION)
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 25; echo $$?),0)
     LOCAL_CFLAGS += -DUSE_OLD_BASE_INCLUDE
 endif
@@ -502,7 +503,6 @@ ifeq ($(AB_OTA_UPDATER),true)
     LOCAL_CFLAGS += -DAB_OTA_UPDATER=1
     LOCAL_SHARED_LIBRARIES += libhardware android.hardware.boot@1.0
     LOCAL_REQUIRED_MODULES += libhardware
-    LOCAL_CFLAGS += -DOF_AB_DEVICE=1
     export OF_AB_DEVICE=1
     export OF_USE_MAGISKBOOT_FOR_ALL_PATCHES=1
     export OF_USE_MAGISKBOOT=1
@@ -868,8 +868,10 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
     endif
 endif
 
-ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25; echo $$?),0)
-    TWRP_REQUIRED_MODULES += file_contexts_text
+ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
+    LOCAL_REQUIRED_MODULES += file_contexts_text
+else ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 25; echo $$?),0)
+    LOCAL_ADDITIONAL_DEPENDENCIES += file_contexts_text
 endif
 
 ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 24; echo $$?),0)

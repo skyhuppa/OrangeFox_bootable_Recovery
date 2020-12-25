@@ -4128,18 +4128,6 @@ bool TWFunc::DontPatchBootImage(void)
 std::string TWFunc::get_log_dir() {
 	if (PartitionManager.Find_Partition_By_Path(CACHE_LOGS_DIR) == NULL) {
 		if (PartitionManager.Find_Partition_By_Path(DATA_LOGS_DIR) == NULL) {
-                       /*
-                       #findef OF_DEVICE_WITHOUT_PERSIST
-                       if (PartitionManager.Find_Partition_By_Path(PERSIST_LOGS_DIR) == NULL) {
-                               LOGINFO("Unable to find a directory to store OrangeFox logs.");
-                               return "";
-                       }
-                       return PERSIST_LOGS_DIR;
-                       #else
-			LOGINFO("Unable to find a directory to store OrangeFox logs.");
-			return "";
-                       #endif
-                       */
 			LOGINFO("Unable to find a directory to store OrangeFox logs.");
 			return "";
 		} else {
@@ -4704,7 +4692,7 @@ string rom_finger_print = "";
   if (!rom_finger_print.empty())
      {
   	LOGINFO("- Using the ROM's fingerprint (%s)\n", rom_finger_print.c_str());
-  	Exec_Cmd("/sbin/resetprop ro.build.fingerprint " + rom_finger_print);
+  	TWFunc::Fox_Property_Set("ro.build.fingerprint", rom_finger_print);
      }
   else LOGINFO("- ROM fingerprint not available\n");
 }
@@ -4850,4 +4838,40 @@ string TWFunc::find_phrase(std::string filename, std::string search)
     }
   return str;
 }
+
+string TWFunc::Fox_Property_Get(string Prop_Name) {
+	char ret[PROPERTY_VALUE_MAX + PROPERTY_VALUE_MAX]; // allow some extra room
+	memset(ret, 0, sizeof(ret));
+	property_get(Prop_Name.c_str(), ret, "");
+   	std::string res = ret;
+   	return res;
+}
+
+int TWFunc::Fox_Property_Set(const std::string Prop_Name, const std::string Value) {
+	int ret;
+    	usleep(128);
+	string tmp = "\"";
+	string cmd = "/sbin/resetprop";
+
+  	if (!Path_Exists(cmd))
+    		cmd = "/system/bin/resetprop";
+
+  	if (!Path_Exists(cmd))
+    		cmd = "/system/bin/setprop";
+
+    	if (Path_Exists(cmd)) {
+  	    ret = Exec_Cmd(cmd + " " + Prop_Name + " " + tmp + Value + tmp);
+    	}
+    	else
+    	   ret = property_set(Prop_Name.c_str(), Value.c_str());
+
+    	usleep(4096);
+
+    	return ret;
+}
+
+bool TWFunc::Has_Dynamic_Partitions(void) {
+	return (Fox_Property_Get("ro.boot.dynamic_partitions") == "true");
+}
+
 //
