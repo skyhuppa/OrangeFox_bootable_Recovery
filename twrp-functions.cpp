@@ -224,17 +224,14 @@ static bool Treble_Is_Running(void)
 /* Return whether the device's storage is encrypted */
 static bool StorageIsEncrypted(void)
 {
-  bool ret = PartitionManager.Partition_Is_Encrypted("/data");
-  if (ret)
-     {
-     	return ret;
-     }
-  string cmd, res;
-  res = "";
-  cmd = "cat /proc/mounts  | grep /data | grep dm-";
+  if (PartitionManager.Storage_Is_Encrypted())
+  	return true;
+
+  string res = "";
+  string cmd = "cat /proc/mounts | grep /data | grep dm-";
   TWFunc::Exec_Cmd(cmd, res);
   //gui_print("RESULT of command:\n|%s|\n is |%s|\n", cmd.c_str(), res.c_str());
-  if (res.empty() || TWFunc::Path_Exists("/data/unencrypted"))
+  if (res.empty())
      return false;
   else
      return true;

@@ -4646,10 +4646,15 @@ void TWPartitionManager::Update_System_Details_OTA_Survival(void)
   return;
 }
 
-bool TWPartitionManager::Partition_Is_Encrypted(const string Path)
+bool TWPartitionManager::Storage_Is_Encrypted(void)
 {
-  TWPartition *Part = Find_Partition_By_Path(Path);
-  return (Part && Part->Is_Encrypted);
+ // FBE only
+ if (TWFunc::Path_Exists("/data/unencrypted/key/version") || DataManager::GetIntValue(TW_IS_FBE) == 1)
+ 	return true;
+
+ // Generic
+  TWPartition *Part = Find_Partition_By_Path("/data");
+  return (Part && Part->Is_Encrypted/* && !Part->Is_Decrypted*/);
 }
 
 bool TWPartitionManager::Prepare_Empty_Folder(const std::string& Folder) {
