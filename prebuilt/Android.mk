@@ -608,9 +608,12 @@ endif
 
 ifneq (,$(filter $(TW_INCLUDE_REPACKTOOLS) $(TW_INCLUDE_RESETPROP) $(TW_INCLUDE_LIBRESETPROP), true))
     ifeq ($(wildcard external/magisk-prebuilt/Android.mk),)
-        $(warning Magisk prebuilt tools not found!)
-        $(warning Please place https://github.com/TeamWin/external_magisk-prebuilt)
-        $(warning into external/magisk-prebuilt)
-        $(error magiskboot prebuilts not present; exiting)
+        $(warning TW_INCLUDE_REPACKTOOLS/TW_INCLUDE_RESETPROP/TW_INCLUDE_LIBRESETPROP are meaningless in OrangeFox)
+        $(warning Use OF_USE_MAGISKBOOT/OF_USE_MAGISKBOOT_FOR_ALL_PATCHES instead)
+        #$(warning Magisk prebuilt tools not found!)
+        #$(warning Please place https://github.com/TeamWin/external_magisk-prebuilt)
+        #$(warning into external/magisk-prebuilt)
+        #$(warning into external/magisk-prebuilt)
+        #$(error magiskboot prebuilts not present; exiting)
     endif
 endif
