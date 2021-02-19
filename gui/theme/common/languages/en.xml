@@ -765,6 +765,7 @@
 		<string name="unable_set_boot_slot">Error changing bootloader boot slot to {1}</string>
 		<string name="ozip_decrypt_decryption">Starting Ozip Decryption...</string>
 		<string name="ozip_decrypt_finish">Ozip Decryption Finished!</string>
+		<string name="restore_system_context">Unable to get default context for {1} -- Android may not boot.</string>
 		<string name="backup_storage_warning">Backups of {1} do not include any files in internal storage such as pictures or downloads.</string>
 		<string name="sha2_chk">Use SHA2 for hashing</string>
 		<string name="disabled">Disabled</string>
