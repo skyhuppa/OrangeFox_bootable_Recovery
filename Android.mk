@@ -1,5 +1,5 @@
 # Copyright (C) 2007 The Android Open Source Project
-# Copyright (C) 2018-2020 OrangeFox Recovery Project
+# Copyright (C) 2018-2021 OrangeFox Recovery Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -84,10 +84,13 @@ ifeq ($(OF_VANILLA_BUILD),1)
     LOCAL_CFLAGS += -DOF_DONT_PATCH_ENCRYPTED_DEVICE='"1"'
     LOCAL_CFLAGS += -DOF_KEEP_DM_VERITY_FORCED_ENCRYPTION='"1"'
     export OF_VANILLA_BUILD=1
+    OF_DISABLE_MIUI_SPECIFIC_FEATURES := 1
+    OF_TWRP_COMPATIBILITY_MODE := 1
 endif
 
 ifeq ($(OF_DISABLE_MIUI_SPECIFIC_FEATURES),1)
     LOCAL_CFLAGS += -DOF_DISABLE_MIUI_SPECIFIC_FEATURES='"1"'
+    OF_TWRP_COMPATIBILITY_MODE := 1
 endif
 
 ifeq ($(OF_DISABLE_MIUI_OTA_BY_DEFAULT),1)
@@ -96,7 +99,17 @@ endif
 
 ifeq ($(OF_TWRP_COMPATIBILITY_MODE),1)
     LOCAL_CFLAGS += -DOF_TWRP_COMPATIBILITY_MODE='"1"'
+    OF_DISABLE_MIUI_SPECIFIC_FEATURES := 1
 endif
+
+# check for conflicts
+ifeq ($(OF_SUPPORT_ALL_BLOCK_OTA_UPDATES),1)
+   ifeq ($(OF_DISABLE_MIUI_SPECIFIC_FEATURES),1)
+        $(warning You cannot use "OF_SUPPORT_ALL_BLOCK_OTA_UPDATES" with "OF_DISABLE_MIUI_SPECIFIC_FEATURES"/"OF_TWRP_COMPATIBILITY_MODE")
+        $(error Fix your build vars! Exiting)
+   endif
+endif
+#
 
 ifeq ($(OF_USE_LEGACY_CRYPTO),1)
     LOCAL_CFLAGS += -DOF_USE_LEGACY_CRYPTO='"1"'
