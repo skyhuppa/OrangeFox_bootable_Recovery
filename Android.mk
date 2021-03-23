@@ -370,6 +370,11 @@ ifeq ($(OF_DISABLE_EXTRA_ABOUT_PAGE),1)
     LOCAL_CFLAGS += -DOF_DISABLE_EXTRA_ABOUT_PAGE=1
 endif
 
+# disable by default the USB storage button on the "Mount" menu
+ifneq ($(OF_ENABLE_USB_STORAGE),1)
+    TW_NO_USB_STORAGE := true
+endif
+
 ifeq ($(TW_USE_TOOLBOX), true)
     LOCAL_CFLAGS += -DTW_USE_TOOLBOX='"1"'
 endif
