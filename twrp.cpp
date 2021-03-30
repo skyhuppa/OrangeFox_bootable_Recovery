@@ -140,6 +140,7 @@ int main(int argc, char **argv)
                  fox_build_date = "[no date!]";
          }
      }
+  DataManager::SetValue("FOX_BUILD_DATE_REAL", fox_build_date);
 
   // set the start date to the recovery's build date
   TWFunc::Reset_Clock();
