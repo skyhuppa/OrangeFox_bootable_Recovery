@@ -81,6 +81,7 @@
 		
 		<!-- Other... -->
 		<variable name="of_hide_data_hint" value="0" persist="1"/>
+		<variable name="of_hide_app_hint" value="0" persist="1"/>
 		<variable name="disable_no_os" value="0" persist="1"/>
 		<variable name="fm_auto_open" value="1" persist="1"/>
 		<variable name="tw_hidden_files" value="0" persist="1"/> 
@@ -426,10 +427,6 @@
 		<!-- Input fields -->
 		<variable name="input_encr_width" value="696"/>
 		<variable name="input_height" value="60"/>
-		<variable name="input_encr_y" value="629"/>
-		<variable name="input_decr_y" value="899"/>
-		<variable name="input_format_y" value="959+%cutout_w%"/>
-		<variable name="input_rename_y" value="569+%cutout_w%"/>
 		<variable name="input_line_height" value="3"/>
 		<variable name="input_cursor_width" value="2"/>
 		
