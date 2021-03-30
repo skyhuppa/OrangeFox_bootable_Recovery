@@ -1145,5 +1145,12 @@
 		<string name="custom_settings">Custom settings for %fox_compatibility_fox_device%</string>
 		<string name="custom_settings_title">Custom settings</string>
 		<string name="tap_to_show">Tap to show</string>
+
+		
+		<string name="try_app">Try our app!</string>
+		<string name="try_app_2">Check recovery updates using our</string>
+		<string name="try_app_3">new app! </string>
+		<string name="try_app_4">Download link:</string>
+		<string name="try_app_5">https://orangefox.tech</string>
 	</resources>
 </language>
