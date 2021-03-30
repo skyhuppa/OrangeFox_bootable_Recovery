@@ -1010,7 +1010,7 @@
 					<condition var1="tw_fm_isfolder" var2="1"/>
 					<condition var1="opts_show" var2="1"/>
 					<icon res="bs_adv_term"/>
-					<action function="changeterminal">%tw_filename1%</action>
+					<action function="changeterminal">"%tw_filename1%"</action>
 				</listitem>
 				<listitem name="{@fm_open_makezip}">
 					<condition var1="opts_show" var2="1"/>
