@@ -87,6 +87,11 @@ endif
 ifeq ($(FOX_ENABLE_LAB),1)
     LOCAL_CFLAGS += -DFOX_ENABLE_LAB='"1"'
 endif
+
+ifeq ($(FOX_USE_NANO_EDITOR), 1)
+    LOCAL_CFLAGS += -DFOX_USE_NANO_EDITOR='"1"'
+endif
+
 ifneq ($(TW_NO_SCREEN_BLANK),)
     LOCAL_CFLAGS += -DTW_NO_SCREEN_BLANK
 endif

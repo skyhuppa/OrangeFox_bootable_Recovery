@@ -186,6 +186,10 @@ ifeq ($(FOX_OLD_DECRYPT_RELOAD),1)
     LOCAL_CFLAGS += -DFOX_OLD_DECRYPT_RELOAD='"1"'
 endif
 
+ifeq ($(FOX_USE_NANO_EDITOR), 1)
+    LOCAL_CFLAGS += -DFOX_USE_NANO_EDITOR='"1"'
+endif
+
 ifneq ($(OF_SCREEN_H),)
     LOCAL_CFLAGS += -DOF_SCREEN_H='"$(OF_SCREEN_H)"'
 else
