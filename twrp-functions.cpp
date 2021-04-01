@@ -2,7 +2,7 @@
 	Copyright 2012 bigbiff/Dees_Troy TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-	Copyright (C) 2018-2020 OrangeFox Recovery Project
+	Copyright (C) 2018-2021 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -4386,7 +4386,7 @@ int TWFunc::Patch_DMVerity_ForcedEncryption_Magisk(void)
 {
 std::string keepdmverity, keepforcedencryption;
 std::string zipname = FFiles_dir + "/OF_verity_crypt/OF_verity_crypt.zip";
-int res=0, wipe_cache=0;
+int res=0, wipe_cache=0, verity_changed = 0;
 std::string magiskboot = TWFunc::Get_MagiskBoot();
   if (!TWFunc::Path_Exists(magiskboot))
      {
@@ -4399,6 +4399,16 @@ std::string magiskboot = TWFunc::Get_MagiskBoot();
         gui_print("ERROR - cannot find %s\n", zipname.c_str());
   	return 1;
      }
+
+   #ifdef OF_FORCE_DISABLE_DM_VERITY_MIUI
+    if (MIUI_Is_Running()) {
+    	res = DataManager::GetIntValue(FOX_DISABLE_DM_VERITY);
+    	if (res != 1) {
+    	   DataManager::SetValue(FOX_DISABLE_DM_VERITY, "1");
+    	   verity_changed = 1;
+    	}
+    }
+   #endif
 
     if ((DataManager::GetIntValue(FOX_DISABLE_DM_VERITY) == 1)/* || (Fox_Force_Deactivate_Process == 1)*/)
 	keepdmverity = "false";
@@ -4426,6 +4436,11 @@ std::string magiskboot = TWFunc::Get_MagiskBoot();
    setenv ("KEEP_VERITY", "", 1);
    setenv ("KEEP_FORCEENCRYPT", "", 1);
    DataManager::SetValue(FOX_INSTALL_PREBUILT_ZIP, "0");
+
+   #ifdef OF_FORCE_DISABLE_DM_VERITY_MIUI
+   if (verity_changed == 1)
+      DataManager::SetValue(FOX_DISABLE_DM_VERITY, "0");
+   #endif
  
    return res;
 }
@@ -4498,13 +4513,11 @@ string sdkverstr = TWFunc::System_Property_Get("ro.build.version.sdk");
 
 string TWFunc::Get_MagiskBoot(void)
 {
-  /*
-  #ifdef OF_USE_NEW_MAGISKBOOT
-  if (Get_Android_SDK_Version() > 25 && TWFunc::Path_Exists(FOX_NEW_MAGISKBOOT))
-     return FOX_NEW_MAGISKBOOT;
-  #endif
-  */
-  return "/sbin/magiskboot";
+std::string magiskboot = "/sbin/magiskboot";
+  if (!TWFunc::Path_Exists(magiskboot)) {
+     magiskboot = "/system/sbin/magiskboot";
+  }
+  return magiskboot;
 }
 
 // hopefully, this function will be obsolete one day ... //
