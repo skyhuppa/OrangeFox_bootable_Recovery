@@ -2,7 +2,7 @@
 	Copyright 2012 bigbiff/Dees_Troy TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-  	Copyright (C) 2018-2020 OrangeFox Recovery Project
+  	Copyright (C) 2018-2021 OrangeFox Recovery Project
  	This file is part of the OrangeFox Recovery Project
  
 	TWRP is free software: you can redistribute it and/or modify
@@ -180,6 +180,7 @@ public:
 	static int Property_Override(string Prop_Name, string Prop_Value); // Override properties (including ro. properties)
 	static void CreateNewFile(string file_path); // create a new (text) file
 	static void AppendLineToFile(string file_path, string line); // append a line to a text file
+	static void PostWipeEncryption(void); // run after formatting data to recreate /data/media/0/ + /sdcard/Fox/logs/ automatically
 
 	// string functions
 	static string lowercase(const string src); /* convert string to lowercase */
