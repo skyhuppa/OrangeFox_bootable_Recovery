@@ -254,9 +254,11 @@ int main(int argc, char **argv)
 	}
 	PartitionManager.Output_Partition_Logging();
 
+        // run the startup script early
+        TWFunc::RunStartupScript();
+
         // use the ROM's fingerprint?
 	#ifdef OF_USE_SYSTEM_FINGERPRINT
-        TWFunc::RunStartupScript(); // run the startup script early
         TWFunc::UseSystemFingerprint();
 	#endif
 
