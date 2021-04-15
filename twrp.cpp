@@ -253,16 +253,20 @@ int main(int argc, char **argv)
 		return -1;
 	}
 	PartitionManager.Output_Partition_Logging();
-	// Load up all the resources
-	gui_loadResources();
-
-	bool Shutdown = false;
 
         // use the ROM's fingerprint?
 	#ifdef OF_USE_SYSTEM_FINGERPRINT
         TWFunc::RunStartupScript(); // run the startup script early
         TWFunc::UseSystemFingerprint();
 	#endif
+
+	// Check for and run startup script if script exists
+	TWFunc::RunFoxScript("/sbin/runatboot.sh");
+
+	// Load up all the resources
+	gui_loadResources();
+
+	bool Shutdown = false;
 
 	string Send_Intent = "";
 	{
@@ -352,9 +356,6 @@ int main(int argc, char **argv)
 	} else {
 		printf("orangefox.crash_counter=%d\n", crash_counter);
 	}
-
-	// Check for and run startup script if script exists
-	TWFunc::RunFoxScript("/sbin/runatboot.sh");
 
 #ifdef TW_INCLUDE_INJECTTWRP
 	// Back up OrangeFox Ramdisk if needed:
