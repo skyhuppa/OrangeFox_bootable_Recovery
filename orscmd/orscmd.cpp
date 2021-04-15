@@ -1,4 +1,4 @@
-/*		Copyright (C) 2018-2020 OrangeFox Recovery Project
+/*		Copyright (C) 2018-2021 OrangeFox Recovery Project
 		This file is part of the OrangeFox Recovery Project.
 
 		TWRP is free software: you can redistribute it and/or modify
@@ -51,6 +51,7 @@ void print_usage(void) {
 	printf("  decrypt <password>\n");
 	printf("  remountrw\n");
 	printf("  fixperms\n");
+	printf("  set_active [slot]\n");
 	printf("  mount <path>\n");
 	printf("  unmount <path>\n");
 	printf("  print <value>\n");

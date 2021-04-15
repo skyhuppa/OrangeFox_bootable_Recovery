@@ -2,7 +2,7 @@
 	Copyright 2003 to 2017 TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-	Copyright (C) 2018-2020 OrangeFox Recovery Project
+	Copyright (C) 2018-2021 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -309,6 +309,27 @@ int OpenRecoveryScript::run_script_file(void) {
 					ret_val = 1;
 				else
 					gui_msg("done=Done.");
+			} else if (strcmp(command, "set_active") == 0) {
+			#ifdef AB_OTA_UPDATER
+				string aSlot = PartitionManager.Get_Active_Slot_Suffix();
+				if (strlen(value) == 0) {
+				    gui_print("Active slot=%s\n", aSlot.c_str());
+				} 
+				else {
+				    string val = value;
+				    gui_print("Active slot=%s\n", aSlot.c_str());
+				    if (val == "_a" || val == "a" || val == "_A" || val == "A")
+				    	aSlot = "A";
+				    else if (val == "_b" || val == "b" || val == "_B" || val == "B")
+				    	aSlot = "B";
+				    LOGINFO("- OrangeFox: changing the active slot to slot %s\n", aSlot.c_str());
+				    PartitionManager.Set_Active_Slot(aSlot);
+				    aSlot = PartitionManager.Get_Active_Slot_Suffix();
+				    gui_print("New active slot=%s\n", aSlot.c_str());
+				}
+			#else
+			 	gui_print("A-only\n");
+			#endif
 			} else if (strcmp(command, "remountrw") == 0) {
 				ret_val = remountrw();
 			} else if (strcmp(command, "mount") == 0) {
