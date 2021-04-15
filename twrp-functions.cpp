@@ -4689,9 +4689,9 @@ string TWFunc::ConvertTime(time_t time)
 void TWFunc::UseSystemFingerprint(void)
 {
 string rom_finger_print = "";
-  if (!Path_Exists("/sbin/resetprop"))
+  if (!Path_Exists("/sbin/resetprop") && !Path_Exists("/system/bin/resetprop"))
      {
-        LOGINFO("\n- I cannot find /sbin/resetprop, therefore I cannot use the system fingerprint\n");
+        LOGINFO("\n- I cannot find resetprop, therefore I cannot use the system fingerprint\n");
         return;
      }
 
