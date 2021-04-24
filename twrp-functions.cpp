@@ -4091,6 +4091,9 @@ bool TWFunc::DontPatchBootImage(void)
      { 
         if (Is_AB_Device()) // don't patch the boot image of A/B devices at post-install stage
         {
+           std::string fox_file = get_log_dir() + "recovery/Fox_Installed";
+           if (Path_Exists(fox_file))
+           	unlink(fox_file.c_str());
            return true;
         }
 

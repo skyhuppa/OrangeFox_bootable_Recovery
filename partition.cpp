@@ -1578,6 +1578,9 @@ bool TWPartition::Mount(bool Display_Error) {
 			   // DJ9 (20200309)- check for /metadata - don't spam with mount error if metadata encryption is not being used
 			   && (Mount_Point != "/metadata")
 			   #endif
+			   #ifdef OF_AB_DEVICE
+			   && (Mount_Point != "/system_root" && (std::string)strerror(errno) != "Permission denied")
+			   #endif
 			   )
 				gui_msg(Msg(msg::kError, "fail_mount=Failed to mount '{1}' ({2})")(Mount_Point)(strerror(errno)));
 			else

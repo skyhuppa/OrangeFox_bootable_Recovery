@@ -640,7 +640,7 @@ int TWPartitionManager::UnMount_By_Path(string Path, bool Display_Error)
   if (Local_Path == "/persist")
       return false;
   #endif
- 
+
   // Iterate through all partitions
   for (iter = Partitions.begin(); iter != Partitions.end(); iter++)
     {
@@ -1654,9 +1654,16 @@ int TWPartitionManager::Wipe_By_Path(string Path)
   int ret = false;
   bool found = false;
   string Local_Path = TWFunc::Get_Root_Path(Path);
-  
+
   if (Local_Path == "/system")
 	Local_Path = Get_Android_Root_Path();		
+
+#ifdef OF_AB_DEVICE
+  string cache = TWFunc::get_log_dir();
+  if (Local_Path == "/cache" && (cache.find(Local_Path) == std::string::npos || !TWFunc::Path_Exists("/cache/.")))
+    return true;
+#endif
+
   // Iterate through all partitions
   for (iter = Partitions.begin(); iter != Partitions.end(); iter++)
     {
@@ -1702,6 +1709,12 @@ int TWPartitionManager::Wipe_By_Path(string Path, string New_File_System)
   int ret = false;
   bool found = false;
   string Local_Path = TWFunc::Get_Root_Path(Path);
+
+#ifdef OF_AB_DEVICE
+  string cache = TWFunc::get_log_dir();
+  if (Local_Path == "/cache" && (cache.find(Local_Path) == std::string::npos || !TWFunc::Path_Exists("/cache/.")))
+    return true;
+#endif
 
   // Iterate through all partitions
   for (iter = Partitions.begin(); iter != Partitions.end(); iter++)
