@@ -1155,5 +1155,6 @@
 		<string name="custom_settings">Custom settings for %fox_compatibility_fox_device%</string>
 		<string name="custom_settings_title">Custom settings</string>
 		<string name="tap_to_show">Tap to show</string>
+		<string name="recovery_busy">Recovery is busy</string>
 	</resources>
 </language>
