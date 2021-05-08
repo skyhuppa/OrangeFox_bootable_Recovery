@@ -1156,5 +1156,7 @@
 		<string name="custom_settings_title">Custom settings</string>
 		<string name="tap_to_show">Tap to show</string>
 		<string name="recovery_busy">Recovery is busy</string>
+		<string name="status_delimeter">Status bar delimiter</string>
+		<string name="status_delimeter_shadow">Shadow</string>
 	</resources>
 </language>
