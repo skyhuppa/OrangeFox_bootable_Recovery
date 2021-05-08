@@ -237,7 +237,7 @@
 
 			<button style="menu_btn">
 				<condition var1="general_back" var2="settings"/>
-				<placement x="%col1_x_caption%" y="%row6_1_y%" w="%input_w%" h="%mb_h_hide%"/>
+				<placement x="%col1_x_caption%" y="%row5_3_y%" w="%input_w%" h="%mb_h_hide%"/>
 				<action function="page">ext_gov</action>
 			</button>
 			
