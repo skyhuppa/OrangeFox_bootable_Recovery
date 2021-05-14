@@ -91,7 +91,7 @@ void ProgressTracking::UpdateDisplayDetails(const bool force) {
 		display_percent = (double)(current_size + previous_partitions_size) / (double)(total_backup_size) * 100;
 	if (display_percent > 100.0) //prevent displaying 146% in gui
 		display_percent = 100.0;
-	unsigned long backuped_size_mb = (current_size + previous_partitions_size) / 1048576,
+	unsigned long long backuped_size_mb = (current_size + previous_partitions_size) / 1048576,
 	total_size_mb = total_backup_size / 1048576;
 
 	if (backuped_size_mb > total_size_mb)
