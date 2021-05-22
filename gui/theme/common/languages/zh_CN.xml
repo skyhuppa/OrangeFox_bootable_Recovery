@@ -764,7 +764,7 @@
 		<string name="unable_set_boot_slot">将 Bootloader 启动位置更改为 {1} 时出错</string>
 		<string name="ozip_decrypt_decryption">正在启动 Ozip 解密...</string>
 		<string name="ozip_decrypt_finish">Ozip 解密已完成！</string>
-		<string name="restore_system_context">Unable to get default context for {1} -- Android may not boot.</string>
+		<string name="restore_system_context">无法获取 {1} 默认的context -- Android 可能无法启动。</string>
 		<string name="backup_storage_warning">备份 {1} 不包括内部存储中的任何文件，例如图片或下载等。</string>
 		<string name="sha2_chk">使用 SHA2 进行散列</string>
 		<string name="disabled">未启用</string>
@@ -991,7 +991,7 @@
 		<string name="perf_title">性能</string>
 		<string name="perf_conf_mode">Recovery 性能模式</string>
 		<string name="perf_conf_balance">均衡</string>
-		<string name="perf_conf_high">High performance</string>
+		<string name="perf_conf_high">高性能</string>
 		<string name="perf_conf_batt">省电模式</string>
 
 		<string name="fox_led_title">LED设置</string>
@@ -1146,8 +1146,8 @@
 		<string name="try_app_3">检查recovery更新吧！ </string>
 		<string name="try_app_4">下载链接：</string>
 		<string name="try_app_5">https://app.orangefox.tech</string>
-		<string name="fm_edit_file">Edit File in nano</string>
-		<string name="fm_open_terminal_btn">Open Terminal Here</string>
+		<string name="fm_edit_file">用 nano 编辑文件</string>
+		<string name="fm_open_terminal_btn">在此处打开终端</string>
 		<string name="batch_progress">进度</string>
 
 		<!-- R11.1 -->
