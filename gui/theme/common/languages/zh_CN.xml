@@ -446,7 +446,7 @@
 		<string name="mtp_already_enabled">MTP 已启用</string>
 		<string name="mtp_fail">启用 MTP 失败</string>
 		<string name="no_mtp">不含 MTP 支持</string>
-		<string name="image_flash_start">[映像刷入开始]</string>
+		<string name="image_flash_start">[镜像刷入开始]</string>
 		<string name="img_to_flash">要刷入的镜像：'{1}'</string>
 		<string name="flash_unable_locate">无法定位要刷入的 '{1}' 分区。</string>
 		<string name="no_part_flash">没有选择要刷入的分区。</string>
@@ -500,7 +500,7 @@
 		<string name="making_dir1">本地目录</string>
 		<string name="making_dir2">建立目录：'{1}'</string>
 		<string name="running_command">运行命令</string>
-		<string name="sideload">通过ADB操作</string>
+		<string name="sideload">ADB Sideload</string>
 		<string name="start_sideload">正在启用 ADB Sideload 特性...</string>
 		<string name="need_new_adb">您需要 ADB 1.0.32及以上版本以加载此设备。</string>
 		<string name="no_pwd">未输入密码。</string>
