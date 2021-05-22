@@ -933,7 +933,7 @@
 		<string name="mm_remove_hint">重启以使改动生效</string>
 		<string name="mm_remove_reboot">重启</string>
 		<string name="magisk_not_found">未发现Magisk!</string>
-		<string name="magisk_not_found_1">Do you want to go to the Fox Addons</string>
+		<string name="magisk_not_found_1">您想到Fox插件中心</string>
 		<string name="magisk_not_found_2">安装预装的Magisk吗？</string>
 		<string name="magisk_not_found_3"/>
 		
@@ -988,8 +988,8 @@
 		<string name="appmgr_title">应用管理</string>
 
 		<!-- performance -->
-		<string name="perf_title">performance</string>
-		<string name="perf_conf_mode">Recovery performance mode</string>
+		<string name="perf_title">性能</string>
+		<string name="perf_conf_mode">Recovery 性能模式</string>
 		<string name="perf_conf_balance">均衡</string>
 		<string name="perf_conf_high">High performance</string>
 		<string name="perf_conf_batt">省电模式</string>
