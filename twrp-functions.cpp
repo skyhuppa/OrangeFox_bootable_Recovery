@@ -2306,7 +2306,7 @@ int TWFunc::Check_MIUI_Treble(void)
   // is the device encrypted?
   if (StorageIsEncrypted())
     {
-      gui_print("* Storage is encrypted\n");
+      gui_print_color("accent", "* Storage is encrypted\n");
     }
   
   // show display panel name, if we got one 
@@ -2361,9 +2361,11 @@ void TWFunc::Welcome_Message(void)
    if (Fox_Has_Welcomed > 0)
     return;
     gui_print("--------------------------\n");
-    gui_print("Welcome to OrangeFox Recovery!\n");
+    gui_print_color("green", "Welcome to OrangeFox Recovery!\n");
+    gui_print("[Platform]  : %s\n", DataManager::GetStrValue(FOX_COMPATIBILITY_DEVICE).c_str());
     gui_print("[Release]   : %s\n", FOX_BUILD);
     gui_print("[Codebase]  : %s\n", FOX_CURRENT_DEV_STR);
+    gui_print("[Build date]: %s\n", DataManager::GetStrValue("FOX_BUILD_DATE_REAL").c_str());
     
     if (FOX_BUILD == "Unofficial")
       gui_print_color("warning", "[Build type]: Unofficial\n");
@@ -2372,6 +2374,12 @@ void TWFunc::Welcome_Message(void)
 #ifdef FOX_ENABLE_LAB
     gui_print_color("error", "\n*** CONFIDENTIAL ALPHA. NOT FOR RELEASE!! ***\n\n");
 #endif
+
+    gui_print("\n");
+    gui_print_color("green", "OrangeFox websites:\n");
+    gui_print("[Downloads] : https://orangefox.download/\n");
+    gui_print("[Guides/FAQ]: https://wiki.orangefox.tech/guides/\n");
+    gui_print("[App]       : https://app.orangefox.tech/\n");
 
     #if defined(OF_DISABLE_MIUI_SPECIFIC_FEATURES) || defined(OF_TWRP_COMPATIBILITY_MODE)
     LOGINFO(" [MIUI-specific features not enabled]\n");
