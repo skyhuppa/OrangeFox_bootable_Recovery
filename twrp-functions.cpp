@@ -4904,22 +4904,20 @@ bool TWFunc::Has_Dynamic_Partitions(void) {
 
 void TWFunc::PostWipeEncryption(void) {
 #ifdef OF_RUN_POST_FORMAT_PROCESS
-  gui_print("Recreating /data/media/0...\n");
+  gui_print("I: Recreating /data/media/0...\n");
   sleep(1);
   TWFunc::Recursive_Mkdir("/data/media/0", false);
   TWFunc::Recursive_Mkdir("/data/media/0/Fox/logs", false);
+
+  gui_print("I: Copying recovery.log...\n");
   TWFunc::copy_file("/tmp/recovery.log", "/data/media/0/Fox/logs/lastrecoverylog.log", 0644);
-
-  TWFunc::Recursive_Mkdir("/sdcard/Fox/logs", false);
-  TWFunc::copy_file("/tmp/recovery.log", "/sdcard/Fox/logs/lastrecoverylog.log", 0644);
-
   sleep(1);
-  
+
+  gui_print("I: Binding the internal storage...\n");
   string cmd = "/sbin/mount";
   if (!TWFunc::Path_Exists(cmd))
      cmd = "/system/bin/mount";
-
-  cmd = cmd + " -o bind /data/media/0 /sdcard";  
+  cmd = cmd + " -o bind /data/media/0 /sdcard";
   TWFunc::Exec_Cmd(cmd);
   sleep(1);
   sync();
