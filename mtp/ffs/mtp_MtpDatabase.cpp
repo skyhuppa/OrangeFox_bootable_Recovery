@@ -1,6 +1,9 @@
 /*
  * Copyright (C) 2010 The Android Open Source Project
  *
+ * Copyright (C) 2018-2021 OrangeFox Recovery Project
+ * This file is part of the OrangeFox Recovery Project.
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -578,7 +581,7 @@ MtpResponseCode IMtpDatabase::getObjectPropertyList(MtpObjectHandle handle, uint
 	  return MTP_RESPONSE_OK;
 	}
   }
-  MTPE("IMtpDatabase::getObjectPropertyList MTP_RESPOSNE_INVALID_OBJECT_HANDLE %i\n", handle);
+  MTPE("IMtpDatabase::getObjectPropertyList MTP_RESPONSE_INVALID_OBJECT_HANDLE %i\n", handle);
   return MTP_RESPONSE_INVALID_OBJECT_HANDLE;
 }
 
@@ -612,7 +615,7 @@ MtpResponseCode IMtpDatabase::getObjectFilePath(MtpObjectHandle handle,
 	  return MTP_RESPONSE_OK;
 	}
   }
-  MTPE("IMtpDatabase::getObjectFilePath MTP_RESPOSNE_INVALID_OBJECT_HANDLE %i\n", handle);
+  MTPE("IMtpDatabase::getObjectFilePath MTP_RESPONSE_INVALID_OBJECT_HANDLE %i\n", handle);
   return MTP_RESPONSE_INVALID_OBJECT_HANDLE;
 }
 
