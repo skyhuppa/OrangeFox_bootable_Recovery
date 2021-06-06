@@ -1202,6 +1202,7 @@ int Get_Password_Type(const userid_t user_id, std::string& filename) {
 		} else if (pwd.password_type == 2 || pwd.password_type == 4) {
 			printf("password type: password\n");
 			return 1; // In OrangeFox this means password
+		}
 		return 0; // We'll try the default password
 #else
 		printf("Synthetic password support not present in TWRP\n");
