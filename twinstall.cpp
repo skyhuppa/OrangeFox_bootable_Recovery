@@ -408,7 +408,6 @@ static int Prepare_Update_Binary(const char *path, ZipWrap * Zip,
   string check_command = "grep " + miui_check1 + " " + TMP_UPDATER_BINARY_PATH;
   string zip_name = path;
   int is_new_miui_update_binary = 0;
-  int zip_has_miui_stuff = 0;
   string assert_device = "";
 
   zip_is_rom_package = false; 		// assume we are not installing a ROM
@@ -445,17 +444,6 @@ static int Prepare_Update_Binary(const char *path, ZipWrap * Zip,
 		  zip_is_rom_package = true;
 		  DataManager::SetValue(FOX_ZIP_INSTALLER_CODE, 1); // standard ROM
 		  
-		  // check for miui entries
-		  /*
-		  if (
-		      TWFunc::CheckWord(FOX_TMP_PATH, "miui_update")
-		   && (TWFunc::CheckWord(FOX_TMP_PATH, "firmware-update") || TWFunc::CheckWord(FOX_TMP_PATH, "ro.build.fingerprint")) // OTA
-		     )
-		     {
-		        zip_has_miui_stuff = 1;
-		     }
-		    
-		    */ 
 	          // check for embedded recovery installs
 	          if  (
 	                 (TWFunc::CheckWord(FOX_TMP_PATH, "/dev/block/bootdevice/by-name/recovery")
@@ -503,11 +491,8 @@ static int Prepare_Update_Binary(const char *path, ZipWrap * Zip,
                     {    
                        LOGINFO("OrangeFox: Detected new Xiaomi update-binary [Message=%s]\n", mCheck.c_str());
                        is_new_miui_update_binary = 1;
-                       //if (zip_has_miui_stuff == 1)
-                       //{
                           zip_is_survival_trigger = true;
                           support_all_block_ota = true;
-                       //}
                     }
                    else 
                      {
@@ -1349,9 +1334,10 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
       	DataManager::SetValue(FOX_LOADED_FINGERPRINT, 0);
       	DataManager::SetValue(FOX_RUN_SURVIVAL_BACKUP, 0);
       
-      	LOGINFO("Install took %i second(s).\n", total_time);
      }
 #endif // OF_DISABLE_MIUI_SPECIFIC_FEATURES
+
+   LOGINFO("Install took %i second(s).\n", total_time);
 
    if (ret_val == INSTALL_SUCCESS)
       set_miui_install_status(OTA_SUCCESS, false);

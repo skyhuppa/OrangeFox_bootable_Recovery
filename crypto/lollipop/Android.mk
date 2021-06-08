@@ -25,7 +25,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
     LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@3.0 libkeystore_binder libhidlbase libutils libbinder
     ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
         #9.0 rules
-        LOCAL_CFLAGS += -DUSE_KEYMASTER_4 -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-comment
+        LOCAL_CFLAGS += -DUSE_KEYMASTER_4 -Wno-sign-compare -Wno-unused-parameter -Wno-comment
         LOCAL_SRC_FILES += ../ext4crypt/Keymaster4.cpp
         LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@4.0 libkeymaster4support
         LOCAL_SHARED_LIBRARIES += libkeystore_parcelables libkeystore_aidl

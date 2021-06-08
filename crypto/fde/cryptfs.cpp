@@ -139,9 +139,9 @@ static_assert(INTERMEDIATE_BUF_SIZE == SCRYPT_LEN,
 static unsigned char saved_master_key[MAX_KEY_LEN];
 static char *saved_mount_point;
 static int  master_key_saved = 0;
-static struct crypt_persist_data *persist_data = NULL;
+//static struct crypt_persist_data *persist_data = NULL;
 
-static int previous_type;
+//static int previous_type;
 
 static char key_fname[PROPERTY_VALUE_MAX] = "";
 static char real_blkdev[PROPERTY_VALUE_MAX] = "";
@@ -1512,7 +1512,7 @@ static int test_mount_encrypted_fs(struct crypt_mnt_ftr* crypt_ftr,
   char tmp_mount_point[64];
   unsigned int orig_failed_decrypt_count;
   int rc = 0;
-  int use_keymaster = 0;
+  //int use_keymaster = 0;
   unsigned char* intermediate_key = 0;
   size_t intermediate_key_size = 0;
   int N = 1 << crypt_ftr->N_factor;

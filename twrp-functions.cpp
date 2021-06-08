@@ -2825,13 +2825,13 @@ bool TWFunc::PackRepackImage_MagiskBoot(bool do_unpack, bool is_boot)
      }
  
   TWPartition *Boot = PartitionManager.Find_Partition_By_Path("/boot");
-  TWPartition *Recovery = PartitionManager.Find_Partition_By_Path("/recovery");
 
 #ifdef OF_AB_DEVICE
   if (Boot != NULL)
     {
        tmpstr = Boot->Actual_Block_Device;
 #else 
+  TWPartition *Recovery = PartitionManager.Find_Partition_By_Path("/recovery");
   if (Boot != NULL && Recovery != NULL)
     {
       if (is_boot)
@@ -4240,9 +4240,6 @@ void TWFunc::Deactivation_Process(void)
 	return;
      }
 
-  bool patched_verity = false;
-  bool patched_crypt = false;
-  
   // don't call this on first boot following fresh installation
   if (New_Fox_Installation != 1)
      {
@@ -4254,6 +4251,8 @@ void TWFunc::Deactivation_Process(void)
 
 // patch ROM's fstab
 #ifndef OF_USE_MAGISKBOOT
+  bool patched_verity = false;
+  bool patched_crypt = false;  
   if ((DataManager::GetIntValue(FOX_DISABLE_FORCED_ENCRYPTION) == 1) || (Fox_Force_Deactivate_Process == 1))
      {
          patched_crypt = Patch_Forced_Encryption_In_System_Fstab();
@@ -4397,7 +4396,7 @@ int TWFunc::Patch_DMVerity_ForcedEncryption_Magisk(void)
 {
 std::string keepdmverity, keepforcedencryption;
 std::string zipname = FFiles_dir + "/OF_verity_crypt/OF_verity_crypt.zip";
-int res=0, wipe_cache=0, verity_changed = 0;
+int res=0, wipe_cache=0;
 std::string magiskboot = TWFunc::Get_MagiskBoot();
   if (!TWFunc::Path_Exists(magiskboot))
      {
@@ -4412,6 +4411,7 @@ std::string magiskboot = TWFunc::Get_MagiskBoot();
      }
 
    #ifdef OF_FORCE_DISABLE_DM_VERITY_MIUI
+    int verity_changed = 0;
     if (MIUI_Is_Running()) {
     	res = DataManager::GetIntValue(FOX_DISABLE_DM_VERITY);
     	if (res != 1) {
