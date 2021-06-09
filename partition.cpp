@@ -680,7 +680,8 @@ void TWPartition::Setup_Data_Partition(bool Display_Error) {
 	} else if (!Mount(false)) {
 		if (Is_Present) {
 			if (Key_Directory.empty()) {
-				set_partition_data(Actual_Block_Device.c_str(), Crypto_Key_Location.c_str(), Fstab_File_System.c_str());
+				set_partition_data(Actual_Block_Device.c_str(), Crypto_Key_Location.c_str(),
+				Fstab_File_System.c_str());
 				if (cryptfs_check_footer() == 0) {
 					Is_Encrypted = true;
 					Is_Decrypted = false;
@@ -689,6 +690,7 @@ void TWPartition::Setup_Data_Partition(bool Display_Error) {
 					Setup_Image();
 					DataManager::SetValue(TW_IS_ENCRYPTED, 1);
 					DataManager::SetValue(TW_CRYPTO_PWTYPE, cryptfs_get_password_type());
+					DataManager::SetValue("tw_crypto_pwtype_0", cryptfs_get_password_type());
 					DataManager::SetValue(TW_CRYPTO_PASSWORD, "");
 					DataManager::SetValue("tw_crypto_display", "");
 				} else {
@@ -699,10 +701,10 @@ void TWPartition::Setup_Data_Partition(bool Display_Error) {
 				Is_Decrypted = false;
 			}
 		} else if (Key_Directory.empty()) {
-			LOGERR("Primary block device '%s' for mount point '%s' is not present!\n", Primary_Block_Device.c_str(), Mount_Point.c_str());
+			LOGERR("Primary block device '%s' for mount point '%s' is not present!\n",
+			Primary_Block_Device.c_str(), Mount_Point.c_str());
 		}
 	} else {
-
 		if (!Decrypt_FBE_DE()) {
 			char wrappedvalue[PROPERTY_VALUE_MAX];
 			property_get("fbe.data.wrappedkey", wrappedvalue, "");
@@ -759,6 +761,18 @@ if (TWFunc::Path_Exists("/data/unencrypted/key/version")) {
 		int retry_count = 3;
 		while (!Decrypt_DE() && --retry_count)
 			usleep(2000);
+		PartitionManager.Parse_Users();  // after load_all_de_keys() to parse_users
+		std::vector<users_struct>::iterator iter;
+		std::vector<users_struct>* userList = PartitionManager.Get_Users_List();
+		for (iter = userList->begin(); iter != userList->end(); iter++) {
+			if (atoi((*iter).userId.c_str()) != 0) {
+				ExcludeAll(Mount_Point + "/system_de/" + (*iter).userId + "/spblob");
+				ExcludeAll(Mount_Point + "/system/users/" + (*iter).userId + "/gatekeeper.password.key");
+				ExcludeAll(Mount_Point + "/system/users/" + (*iter).userId + "/gatekeeper.pattern.key");
+				ExcludeAll(Mount_Point + "/system/users/" + (*iter).userId + "/locksettings.db");
+				ExcludeAll(Mount_Point + "/system/users/" + (*iter).userId + "/locksettings.db-wal");
+			}
+		}
 		if (retry_count > 0) {
 			property_set("ro.crypto.state", "encrypted");
 			Is_Encrypted = true;
@@ -768,7 +782,7 @@ if (TWFunc::Path_Exists("/data/unencrypted/key/version")) {
 			int pwd_type = Get_Password_Type(0, filename);
 			if (pwd_type < 0) {
 				LOGERR("This build does not have synthetic password decrypt support\n");
-				pwd_type = 0; // default password
+				pwd_type = 0;  // default password
 			}
 			TWPartition::Fox_Add_Backup_Exclusions();
 			DataManager::SetValue(TW_CRYPTO_PWTYPE, pwd_type);
@@ -2666,6 +2680,22 @@ bool TWPartition::Backup_Tar(PartitionSettings *part_settings, pid_t *tar_fork_p
 	Full_FileName = part_settings->Backup_Folder + "/" + Backup_FileName;
 	if (Has_Data_Media)
 		gui_msg(Msg(msg::kWarning, "backup_storage_warning=Backups of {1} do not include any files in internal storage such as pictures or downloads.")(Display_Name));
+	if (Mount_Point == "/data" && DataManager::GetIntValue(TW_IS_FBE)) {
+		std::vector<users_struct>::iterator iter;
+		std::vector<users_struct>* userList = PartitionManager.Get_Users_List();
+		for (iter = userList->begin(); iter != userList->end(); iter++) {
+			if (!(*iter).isDecrypted && (*iter).userId != "0") {
+				gui_msg(Msg(msg::kWarning,
+				"backup_storage_undecrypt_warning=Backup will not include some files from user {1} "
+				"because the user is not decrypted.")((*iter).userId));
+				backup_exclusions.add_absolute_dir("/data/system_ce/" + (*iter).userId);
+				backup_exclusions.add_absolute_dir("/data/misc_ce/" + (*iter).userId);
+				backup_exclusions.add_absolute_dir("/data/vendor_ce/" + (*iter).userId);
+				backup_exclusions.add_absolute_dir("/data/media/" + (*iter).userId);
+				backup_exclusions.add_absolute_dir("/data/user/" + (*iter).userId);
+			}
+		}
+	}
 	tar.part_settings = part_settings;
 	tar.backup_exclusions = &backup_exclusions;
 	tar.setdir(Backup_Path);

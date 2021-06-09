@@ -104,6 +104,7 @@ extern "C"
 #endif
 
 extern bool datamedia;
+std::vector<users_struct> Users_List;
 
 TWPartitionManager::TWPartitionManager(void)
 {
@@ -364,10 +365,12 @@ int TWPartitionManager::Process_Fstab(string Fstab_Filename, bool Display_Error,
 				}
 			} else {
 				DataManager::SetValue("TW_CRYPTO_TYPE", password_type);
+				DataManager::SetValue("tw_crypto_pwtype_0", password_type);
 			}
 		}
 	}
-	if (Decrypt_Data && (!Decrypt_Data->Is_Encrypted || Decrypt_Data->Is_Decrypted) && Decrypt_Data->Mount(false)) {
+	if (Decrypt_Data && (!Decrypt_Data->Is_Encrypted || Decrypt_Data->Is_Decrypted) &&
+	Decrypt_Data->Mount(false)) {
 		Decrypt_Adopted();
 	}
 #endif
@@ -2183,6 +2186,7 @@ void TWPartitionManager::Post_Decrypt(const string & Block_Device)
 	{
 	  gui_msg("decrypt_success_nodev=Data successfully decrypted");
 	}
+	  property_set("twrp.decrypt.done", "true");
       dat->Setup_File_System(false);
       dat->Current_File_System = dat->Fstab_File_System;	// Needed if we're ignoring blkid because encrypted devices start out as emmc
 
@@ -2205,138 +2209,242 @@ void TWPartitionManager::Post_Decrypt(const string & Block_Device)
     LOGERR("Unable to locate data partition.\n");
 }
 
-int TWPartitionManager::Decrypt_Device(string Password)
-{
+void TWPartitionManager::Parse_Users() {
+#ifdef TW_INCLUDE_FBE
+	char user_check_result[PROPERTY_VALUE_MAX];
+	for (int userId = 0; userId <= 9999; userId++) {
+		string prop = "twrp.user." + to_string(userId) + ".decrypt";
+		property_get(prop.c_str(), user_check_result, "-1");
+		if (strcmp(user_check_result, "-1") != 0) {
+			if (userId < 0 || userId > 9999) {
+				LOGINFO("Incorrect user id %d\n", userId);
+				continue;
+			}
+			struct users_struct user;
+			user.userId = to_string(userId);
+
+			// Attempt to get name of user. Fallback to user ID if this fails.
+			char* userFile = PageManager::LoadFileToBuffer("/data/system/users/" + to_string(userId) + ".xml", NULL);
+			if (userFile == NULL) 
+				user.userName = to_string(userId);
+			else {
+				xml_document<> *userXml = new xml_document<>();
+				userXml->parse<0>(userFile);
+				xml_node<>* userNode = userXml->first_node("user");
+				if (userNode == nullptr) {
+					user.userName = to_string(userId);
+				} else {
+					xml_node<>* nameNode = userNode->first_node("name");
+					if (nameNode == nullptr)
+						user.userName = to_string(userId);
+					else {
+						string userName = nameNode->value();
+						user.userName = userName + " (" + to_string(userId) + ")";
+					}
+				}
+			}
+
+			string filename;
+			user.type = Get_Password_Type(userId, filename);
+
+			user.isDecrypted = false;
+			if (strcmp(user_check_result, "1") == 0)
+				user.isDecrypted = true;
+			Users_List.push_back(user);
+		}
+	}
+	Check_Users_Decryption_Status();
+#endif
+}
+
+std::vector<users_struct>* TWPartitionManager::Get_Users_List() {
+	return &Users_List;
+}
+
+void TWPartitionManager::Mark_User_Decrypted(int userID) {
+#ifdef TW_INCLUDE_FBE
+	std::vector<users_struct>::iterator iter;
+	for (iter = Users_List.begin(); iter != Users_List.end(); iter++) {
+		if (atoi((*iter).userId.c_str()) == userID) {
+			(*iter).isDecrypted = true;
+			string user_prop_decrypted = "twrp.user." + to_string(userID) + ".decrypt";
+			property_set(user_prop_decrypted.c_str(), "1");
+			break;
+		}
+	}
+	Check_Users_Decryption_Status();
+#endif
+}
+
+void TWPartitionManager::Check_Users_Decryption_Status() {
+#ifdef TW_INCLUDE_FBE
+	int all_is_decrypted = 1;
+	std::vector<users_struct>::iterator iter;
+	for (iter = Users_List.begin(); iter != Users_List.end(); iter++) {
+		if (!(*iter).isDecrypted) {
+			all_is_decrypted = 0;
+			break;
+		}
+	}
+	if (all_is_decrypted == 1) {
+		DataManager::SetValue("tw_all_users_decrypted", "1");
+		property_set("twrp.all.users.decrypted", "true");
+	} else
+		DataManager::SetValue("tw_all_users_decrypted", "0");
+#endif
+}
+
+int TWPartitionManager::Decrypt_Device(string Password, int user_id) {
 #ifdef TW_INCLUDE_CRYPTO
   char crypto_state[PROPERTY_VALUE_MAX], crypto_blkdev[PROPERTY_VALUE_MAX];
-  std::vector < TWPartition * >::iterator iter;
+  std::vector<TWPartition*>::iterator iter;
 
   // Mount any partitions that need to be mounted for decrypt
-  for (iter = Partitions.begin(); iter != Partitions.end(); iter++)
-    {
-      if ((*iter)->Mount_To_Decrypt)
-	{
-	  (*iter)->Mount(true);
-	}
+  for (iter = Partitions.begin(); iter != Partitions.end(); iter++) {
+    if ((*iter)->Mount_To_Decrypt) {
+      (*iter)->Mount(true);
     }
+  }
 
   property_set("orangefox.mount_to_decrypt", "1");
   property_get("ro.crypto.state", crypto_state, "error");
   if (strcmp(crypto_state, "error") == 0) {
-	Set_FDE_Encrypt_Status();
-   }
+    Set_FDE_Encrypt_Status();
+  }
 
-  if (DataManager::GetIntValue(TW_IS_FBE))
-    {
+  if (DataManager::GetIntValue(TW_IS_FBE)) {
 #ifdef TW_INCLUDE_FBE
-      if (!Mount_By_Path("/data", true))	// /data has to be mounted for FBE
-	return -1;
-      int retry_count = 10;
-      while (!TWFunc::
-	     Path_Exists("/data/system/users/gatekeeper.password.key")
-	     && --retry_count)
-	usleep(2000);		// A small sleep is needed after mounting /data to ensure reliable decrypt... maybe because of DE?
-      int user_id = DataManager::GetIntValue("tw_decrypt_user_id");
-      LOGINFO("Decrypting FBE for user %i\n", user_id);
-      if (Decrypt_User(user_id, Password))
-	{
-	  Post_Decrypt("");
-	  return 0;
-	}
-#else
-      LOGERR("FBE support is not present\n");
-#endif
+    if (!Mount_By_Path("/data", true))  // /data has to be mounted for FBE
       return -1;
+
+    bool user_need_decrypt = false;
+    std::vector<users_struct>::iterator iter;
+    for (iter = Users_List.begin(); iter != Users_List.end(); iter++) {
+      if (atoi((*iter).userId.c_str()) == user_id && !(*iter).isDecrypted) {
+        user_need_decrypt = true;
+      }
     }
+    if (!user_need_decrypt) {
+      LOGINFO("User %d does not require decryption\n", user_id);
+      return 0;
+    }
+
+    int retry_count = 10;
+    while (!TWFunc::Path_Exists("/data/system/users/gatekeeper.password.key") && --retry_count)
+      usleep(2000);  // A small sleep is needed after mounting /data to ensure reliable decrypt...
+                     // maybe because of DE?
+    gui_msg(Msg("decrypting_user_fbe=Attempting to decrypt FBE for user {1}...")(user_id));
+    if (Decrypt_User(user_id, Password)) {
+      gui_msg(Msg("decrypt_user_success_fbe=User {1} Decrypted Successfully")(user_id));
+      Mark_User_Decrypted(user_id);
+      if (user_id == 0) {
+        // When decrypting user 0 also try all other users
+        std::vector<users_struct>::iterator iter;
+        for (iter = Users_List.begin(); iter != Users_List.end(); iter++) {
+          if ((*iter).userId == "0" || (*iter).isDecrypted) continue;
+
+          int tmp_user_id = atoi((*iter).userId.c_str());
+          gui_msg(
+              Msg("decrypting_user_fbe=Attempting to decrypt FBE for user {1}...")(tmp_user_id));
+          if (Decrypt_User(tmp_user_id, Password) ||
+              (Password != "!" && Decrypt_User(tmp_user_id, "!"))) {  // "!" means default password
+            gui_msg(Msg("decrypt_user_success_fbe=User {1} Decrypted Successfully")(tmp_user_id));
+            Mark_User_Decrypted(tmp_user_id);
+          } else {
+            gui_msg(Msg("decrypt_user_fail_fbe=Failed to decrypt user {1}")(tmp_user_id));
+          }
+        }
+        Post_Decrypt("");
+      }
+
+      return 0;
+    } else {
+      gui_msg(Msg(msg::kError, "decrypt_user_fail_fbe=Failed to decrypt user {1}")(user_id));
+    }
+#else
+    LOGERR("FBE support is not present\n");
+#endif
+    return -1;
+  }
+
+  char isdecrypteddata[PROPERTY_VALUE_MAX];
+  property_get("twrp.decrypt.done", isdecrypteddata, "");
+  if (strcmp(isdecrypteddata, "true") == 0) {
+    LOGINFO("Data has no decryption required\n");
+    return 0;
+  }
 
   int pwret = -1;
   pid_t pid = fork();
-  if (pid < 0)
-    {
-      LOGERR("fork failed\n");
-      return -1;
-    }
-  else if (pid == 0)
-    {
-      // Child process
-      char cPassword[255];
-      strcpy(cPassword, Password.c_str());
-      int ret = cryptfs_check_passwd(cPassword);
-      exit(ret);
-    }
-  else
-    {
-      // Parent
-      int status;
-      int decrypt_timeout = 30; // DJ9: original=30
-      #ifdef OF_REDUCE_DECRYPTION_TIMEOUT
-      decrypt_timeout = 20; // reduce the decryption timeout
-      #endif
-      if (TWFunc::Wait_For_Child_Timeout(pid, &status, "Decrypt", decrypt_timeout)) // DJ9
-	pwret = -1;
-      else
-	pwret = WEXITSTATUS(status) ? -1 : 0;
-    }
+  if (pid < 0) {
+    LOGERR("fork failed\n");
+    return -1;
+  } else if (pid == 0) {
+    // Child process
+    char cPassword[255];
+    strcpy(cPassword, Password.c_str());
+    int ret = cryptfs_check_passwd(cPassword);
+    exit(ret);
+  } else {
+    // Parent
+    int status;
+    int decrypt_timeout = 30;  // DJ9: original=30
+#ifdef OF_REDUCE_DECRYPTION_TIMEOUT
+    decrypt_timeout = 20;  // reduce the decryption timeout
+#endif
+    if (TWFunc::Wait_For_Child_Timeout(pid, &status, "Decrypt", decrypt_timeout))  // DJ9
+      pwret = -1;
+    else
+      pwret = WEXITSTATUS(status) ? -1 : 0;
+  }
 
 #ifdef TW_CRYPTO_USE_SYSTEM_VOLD
-  if (pwret != 0)
-    {
-      pwret = vold_decrypt(Password);
-      switch (pwret)
-	{
-	case VD_SUCCESS:
-	  break;
-	case VD_ERR_MISSING_VDC:
-	  gui_msg(Msg
-		  (msg::kError,
-		   "decrypt_data_vold_os_missing=Missing files needed for vold decrypt: {1}")
-		  ("/system/bin/vdc"));
-	  break;
-	case VD_ERR_MISSING_VOLD:
-	  gui_msg(Msg
-		  (msg::kError,
-		   "decrypt_data_vold_os_missing=Missing files needed for vold decrypt: {1}")
-		  ("/system/bin/vold"));
-	  break;
-	}
+  if (pwret != 0) {
+    pwret = vold_decrypt(Password);
+    switch (pwret) {
+      case VD_SUCCESS:
+        break;
+      case VD_ERR_MISSING_VDC:
+        gui_msg(Msg(msg::kError,
+                    "decrypt_data_vold_os_missing=Missing files needed for vold decrypt: {1}")(
+            "/system/bin/vdc"));
+        break;
+      case VD_ERR_MISSING_VOLD:
+        gui_msg(Msg(msg::kError,
+                    "decrypt_data_vold_os_missing=Missing files needed for vold decrypt: {1}")(
+            "/system/bin/vold"));
+        break;
     }
-#endif // TW_CRYPTO_USE_SYSTEM_VOLD
+  }
+#endif  // TW_CRYPTO_USE_SYSTEM_VOLD
 
   // Unmount any partitions that were needed for decrypt
-  for (iter = Partitions.begin(); iter != Partitions.end(); iter++)
-    {
-      if ((*iter)->Mount_To_Decrypt)
-	{
-	  (*iter)->UnMount(false);
-	}
+  for (iter = Partitions.begin(); iter != Partitions.end(); iter++) {
+    if ((*iter)->Mount_To_Decrypt) {
+      (*iter)->UnMount(false);
     }
+  }
 
   property_set("orangefox.mount_to_decrypt", "0");
 
-  if (pwret != 0)
-    {
-      gui_err("fail_decrypt=Failed to decrypt data.");
-      return -1;
-    }
+  if (pwret != 0) {
+    gui_err("fail_decrypt=Failed to decrypt data.");
+    return -1;
+  }
 
   property_get("ro.crypto.fs_crypto_blkdev", crypto_blkdev, "error");
-  if (strcmp(crypto_blkdev, "error") == 0)
-    {
-      LOGERR("Error retrieving decrypted data block device.\n");
-    }
-  else
-    {
-      Post_Decrypt(crypto_blkdev);
-    }
+  if (strcmp(crypto_blkdev, "error") == 0) {
+    LOGERR("Error retrieving decrypted data block device.\n");
+  } else {
+    Post_Decrypt(crypto_blkdev);
+  }
   return 0;
 #else
-  gui_err
-    ("no_crypto_support=No crypto support was compiled into this build.");
+  gui_err("no_crypto_support=No crypto support was compiled into this build.");
   return -1;
 #endif
   return 1;
 }
-
 
 int TWPartitionManager::Fix_Contexts(void)
 {
