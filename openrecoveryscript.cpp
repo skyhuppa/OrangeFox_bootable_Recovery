@@ -765,7 +765,10 @@ void OpenRecoveryScript::Run_CLI_Command(const char* command) {
 			gui_msg("decrypt_cmd=Attempting to decrypt data partition or user data via command line.");
 			if (PartitionManager.Decrypt_Device(pass, atoi(userid.c_str())) == 0) {
 				// set_page_done = 1;  // done by singleaction_page anyway
-				std::string orsFile = TWFunc::get_cache_dir() + "/openrecoveryscript";
+				std::string logDir = TWFunc::get_log_dir();
+				if (logDir == DATA_LOGS_DIR)
+					logDir = "/data/cache";
+				std::string orsFile = logDir + "/openrecoveryscript";
 				if (TWFunc::Path_Exists(orsFile)) {
 					Run_OpenRecoveryScript_Action();
 				}
