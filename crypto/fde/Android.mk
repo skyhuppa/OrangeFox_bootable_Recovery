@@ -24,7 +24,7 @@ ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 26; echo $$?),0)
     LOCAL_SHARED_LIBRARIES += libselinux libc libc++ libbase libcrypto libcutils libkeymaster_messages libhardware libprotobuf-cpp-lite libe4crypt android.hardware.keymaster@3.0 libkeystore_binder libhidlbase libutils libbinder
     ifeq ($(shell test $(PLATFORM_SDK_VERSION) -ge 28; echo $$?),0)
         #9.0 rules
-        LOCAL_CFLAGS += -Wno-unused-variable -Wno-sign-compare -Wno-unused-parameter -Wno-comment
+        LOCAL_CFLAGS += -Wno-sign-compare -Wno-unused-parameter -Wno-comment
         LOCAL_SHARED_LIBRARIES += android.hardware.keymaster@4.0 libkeymaster4support libkeyutils
         LOCAL_CFLAGS += -DTW_KEYMASTER_MAX_API=4
     else

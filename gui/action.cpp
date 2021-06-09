@@ -1863,7 +1863,6 @@ int GUIAction::partitionsd(std::string arg __unused)
 
   if (simulate)
     {
-      TWPartition *SDCard = PartitionManager.Find_Partition_By_Path(DataManager::GetCurrentPartPath());
       LOGINFO("DEBUG: Selected partition: %s\n", DataManager::GetCurrentPartPath().c_str());
       simulate_progress_bar();
     }
@@ -2856,8 +2855,6 @@ int GUIAction::cmdf(std::string arg, std::string file)
 {
   char buff[1024];
   sprintf(buff, gui_parse_text(arg).c_str(), file.c_str());
-
-   int op_status = 0;
   string cmdpath, command;
 
   //begin terminal
