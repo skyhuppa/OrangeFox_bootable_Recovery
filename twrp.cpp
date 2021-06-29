@@ -131,6 +131,10 @@ int main(int argc, char **argv)
   property_set("ro.orangefox.type", FOX_BUILD_TYPE);
   property_set("ro.orangefox.build", "orangefox");
 
+  #if SDK_VERSION == 23
+  TWFunc::Fox_Property_Set("ro.build.version.sdk", "23");
+  #endif
+
   #ifdef OF_TARGET_DEVICES
   property_set("ro.orangefox.target.devices", OF_TARGET_DEVICES);
   #endif

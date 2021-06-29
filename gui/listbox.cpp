@@ -230,7 +230,12 @@ void GUIListBox::ReadFileToList(const char* fileName) {
 	if (TWFunc::Get_File_Size(fileName) > 1572864) //1.5mb
 		error = gui_parse_text("{@file_read_error_size=File is bigger than 1.5MB!}");
 	else if (TWFunc::read_file(fileName, lines) == 0) {
-		if ((lines[0] + lines[1]).find('\0') != std::string::npos) // i
+		#if SDK_VERSION >= 24
+		   if ((lines[0] + lines[1]).find('\0') != std::string::npos) // i
+		#else
+		   char nullterm = '\0';
+		   if ((lines[0] + lines[1]).find((char)nullterm) != std::string::npos) // i
+		#endif
 			error = gui_parse_text("{@file_read_error_bin=Can't read binary file!}");
 		else {
 			lines.push_back(L"");
