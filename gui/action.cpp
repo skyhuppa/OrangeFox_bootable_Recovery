@@ -141,11 +141,16 @@ void ActionThread::threadActions(GUIAction * act)
   pthread_mutex_lock(&m_act_lock);
   if (m_thread_running)
     {
-      pthread_mutex_unlock(&m_act_lock);
-     if (! Hide_Reboot_Kludge_Fix(act->mActions[0].mFunction))
-      LOGERR
-	("Another threaded action is already running -- not running %u actions starting with '%s'\n",
-	 act->mActions.size(), act->mActions[0].mFunction.c_str());
+       pthread_mutex_unlock(&m_act_lock);
+       if (! Hide_Reboot_Kludge_Fix(act->mActions[0].mFunction)) 
+       {
+	  if (act->mActions[0].mFunction == "adb")
+      	      LOGINFO
+      	      ("Another threaded action is already running -- not running %lu actions starting with '%s'\n", act->mActions.size(), act->mActions[0].mFunction.c_str());	
+	  else
+      	      LOGERR
+	      ("Another threaded action is already running -- not running %lu actions starting with '%s'\n", act->mActions.size(), act->mActions[0].mFunction.c_str());
+       }
     }
   else
     {
