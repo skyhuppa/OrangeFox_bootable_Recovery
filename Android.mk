@@ -59,6 +59,12 @@ else
     LOCAL_CFLAGS += -DFOX_VERSION='"Unofficial"'
 endif
 
+ifeq ($(FOX_VARIANT),)
+    LOCAL_CFLAGS += -DFOX_VARIANT='"default"'
+else
+    LOCAL_CFLAGS += -DFOX_VARIANT='"$(FOX_VARIANT)"'
+endif
+
 DEVICE := $(subst omni_,,$(TARGET_PRODUCT))
 
 ifeq ($(FOX_DEVICE_MODEL),)
@@ -73,6 +79,7 @@ ifeq ($(OF_AB_DEVICE),1)
     export OF_USE_MAGISKBOOT_FOR_ALL_PATCHES=1
     export OF_USE_MAGISKBOOT=1
     LOCAL_CFLAGS += -DOF_AB_DEVICE='"1"'
+    LOCAL_CFLAGS += -DAB_OTA_UPDATER=1
     export OF_AB_DEVICE=1
 endif
 
@@ -145,7 +152,7 @@ endif
 # LZMA
 ifeq ($(FOX_USE_LZMA_COMPRESSION),1)
     ifeq ($(LZMA_RAMDISK_TARGETS),)
-    LZMA_RAMDISK_TARGETS := recovery
+    	LZMA_RAMDISK_TARGETS := recovery
     endif
     export OF_USE_MAGISKBOOT_FOR_ALL_PATCHES=1
     export OF_USE_MAGISKBOOT=1

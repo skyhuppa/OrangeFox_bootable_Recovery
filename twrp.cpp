@@ -129,6 +129,7 @@ int main(int argc, char **argv)
   property_set("ro.orangefox.boot", "1");
   property_set("ro.orangefox.version", FOX_VERSION);
   property_set("ro.orangefox.type", FOX_BUILD_TYPE);
+  property_set("ro.orangefox.variant", FOX_VARIANT);
   property_set("ro.orangefox.build", "orangefox");
 
   #if SDK_VERSION == 23
@@ -156,8 +157,8 @@ int main(int argc, char **argv)
   TWFunc::Reset_Clock();
 
   DataManager::GetValue(FOX_COMPATIBILITY_DEVICE, Fox_Current_Device);
-  printf("Starting OrangeFox Recovery %s [core: %s] (built on %s for %s [dev_ver: %s]; pid %d)\n",
-  	FOX_BUILD, FOX_MAIN_VERSION_STR, fox_build_date.c_str(), Fox_Current_Device.c_str(), FOX_CURRENT_DEV_STR, getpid());
+  printf("Starting OrangeFox Recovery %s [%s, core: %s] (built on %s for %s [dev_ver: %s]; pid %d)\n",
+  	FOX_BUILD, FOX_VARIANT, FOX_MAIN_VERSION_STR, fox_build_date.c_str(), Fox_Current_Device.c_str(), FOX_CURRENT_DEV_STR, getpid());
 
   // Load default values to set DataManager constants and handle ifdefs
 	DataManager::SetDefaultValues();
