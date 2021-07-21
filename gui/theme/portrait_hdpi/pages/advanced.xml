@@ -297,7 +297,7 @@
 				<action function="set">tw_file=OF_DelPass.zip</action>
 				<action function="set">tw_filename=/FFiles/OF_DelPass/OF_DelPass.zip</action>
 				<action function="set">tw_filecheck=%tw_filename%</action>
-				<action function="set">tw_zip_location=/sdcard/Fox/FoxFiles</action>
+				<action function="set">tw_zip_location=/FFiles/OF_DelPass</action>
 				<action function="queuezip"/>
 				<action function="set">tw_notexistpage=fox_modules_confirm</action>
 				<action function="set">tw_existpage=fox_modules_confirm</action>
@@ -374,7 +374,7 @@
 			</text>
 
 			<listbox style="btn_list">
-				<placement x="0" y="%row5_3_y%" w="%screen_w%" h="%bl_h4%"/>
+				<placement x="0" y="%row5_3_y%" w="%screen_w%" h="%bl_h5%"/>
 				<listitem name="{@module_of_set}">
 					<condition var1="fileexists" var2="/FFiles/OF_backup_settings/OF_backup_settings.zip"/>
 					<icon res="bs_btn_archive"/>
@@ -416,6 +416,14 @@
 					<icon res="bs_btn_archive"/>
 					<action function="page">mod_pass</action>
 				</listitem>
+
+				<listitem name="{@module_remove_survival}">
+					<condition var1="fileexists" var2="/FFiles/OF_Del_Survival/OF_Del_Survival.zip"/>
+					<condition var1="fox_branch" op="&gt;=" var2="10"/>
+					<icon res="bs_btn_archive"/>
+					<action function="page">mod_survival</action>
+				</listitem>
+
 			</listbox>
 
 			<template name="base"/>
