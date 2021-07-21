@@ -372,26 +372,9 @@
 		<string name="ok_btn">OK</string>
 		<string name="install_twrp_ramdisk">Install Recovery Ramdisk</string>
 		<string name="install_kernel">Install Kernel</string>
-		<string name="repack_kernel_confirm_hdr">Install Kernel</string>
-		<string name="repack_ramdisk_confirm_hdr">Install Recovery</string>
-		<string name="repack_kernel_confirm">Install Kernel?</string>
-		<string name="repack_ramdisk_confirm">Install Recovery?</string>
 		<string name="repack_backup_first">Back up existing image first</string>
-		<string name="repack">Repack</string>
-		<string name="swipe_to_install">Swipe to Install</string>
 		<string name="installing">Installing...</string>
 		<string name="install_complete">Install Complete</string>
-		<string name="unpack_error">Error unpacking image.</string>
-		<string name="repack_error">Error repacking image.</string>
-		<string name="unpacking_image">Unpacking {1}...</string>
-		<string name="repacking_image">Repacking {1}...</string>
-		<string name="repack_image_hdr">Select Image</string>
-		<string name="fix_recovery_loop">Fix Recovery Bootloop</string>
-		<string name="fix_recovery_loop_confirm">Fix Recovery Bootloop?</string>
-		<string name="fixing_recovery_loop">Fixing Recovery Bootloop...</string>
-		<string name="fix_recovery_loop_complete">Fix Recovery Bootloop Complete</string>
-		<string name="fixing_recovery_loop_patch">Patching kernel...</string>
-		<string name="fix_recovery_loop_patch_error">Error patching kernel.</string>
 		<string name="decrypt_users">Decrypt Users</string>
 		<string name="backup_storage_undecrypt_warning">Backup not include some files of user {1}, because the user is not decrypted.</string>
 		<string name="decrypting_user_fbe">Attempting to decrypt FBE for user {1}...</string>
@@ -571,7 +554,7 @@
 		<!-- These 2 items are saved in the data manager instead of resource manager, so %llu, etc is correct instead of {1} -->
 		<string name="file_progress">%llu of %llu files, %i%%</string>
 		<string name="size_progress">%lluMB of %lluMB, %i%%</string>
-		<string name="decrypt_cmd" version="2">Attempting to decrypt data partition or user data via command line.</string>
+		<string name="decrypt_cmd">Attempting to decrypt data partition via command line.</string>
 		<string name="base_pkg_err">Failed to load base packages.</string>
 		<string name="simulating">SIMULATING ACTIONS</string>
 		<string name="backup_cancel">Backup Cancelled</string>
@@ -795,7 +778,6 @@
 		<string name="unable_set_boot_slot">Error changing bootloader boot slot to {1}</string>
 		<string name="ozip_decrypt_decryption">Starting Ozip Decryption...</string>
 		<string name="ozip_decrypt_finish">Ozip Decryption Finished!</string>
-		<string name="restore_system_context">Unable to get default context for {1} -- Android may not boot.</string>
 		<string name="backup_storage_warning">Backups of {1} do not include any files in internal storage such as pictures or downloads.</string>
 		<string name="sha2_chk">Use SHA2 for hashing</string>
 		<string name="disabled">Disabled</string>
@@ -804,8 +786,17 @@
 
 		<string name="unmount_sys_install">Unmount System before installing a ZIP</string>
 		<string name="unmount_system">Unmounting System...</string>
-		<string name="unmount_system_err">Failed unmounting System</string>		
+		<string name="unmount_system_err">Failed to unmount System</string>		
+
+		<string name="unmount_vendor_install">Unmount Vendor before installing a ZIP</string>
+		<string name="unmount_vendor">Unmounting Vendor...</string>
+		<string name="unmount_vendor_err">Failed to unmount Vendor</string>	
+			
 		<string name="fbe_wipe_msg">WARNING: {1} wiped. FBE device should be booted into Android and not Recovery to set initial FBE policy after wipe.</string>		
+		<string name="fastboot_button">Fastboot</string>
+		<string name="enable_adb">Enable ADB</string>
+		<string name="enable_fastboot">Enable Fastboot</string>
+		<string name="fastboot_console_msg">Entered Fastboot mode...</string>
 		
 		<!-- Console Messages -->
 		<string name="fox_incremental_ota_compatibility_chk">Verifying Incremental Package Signature...</string>
@@ -865,6 +856,7 @@
 		<string name="module_of_set">Backup OrangeFox Settings</string>
 		<string name="module_cam">Enable Camera2API</string>
 		<string name="module_pass">Remove password</string>
+		<string name="module_remove_survival">Remove all survival scripts</string>
 		<string name="fox_files_not_exist_1">File doesn't exist!</string>
 		<string name="fox_files_not_exist_2">Please reflash recovery</string>
 		<string name="fox_files_not_exist_3">using the installation zip.</string>
@@ -1188,6 +1180,17 @@
 		<string name="custom_settings">Custom settings for %fox_compatibility_fox_device%</string>
 		<string name="custom_settings_title">Custom settings</string>
 		<string name="tap_to_show">Tap to show</string>
+
+		<!-- Android Rescue Party trigger -->
+		<string name="rescue_party0">Android Rescue Party trigger! Possible solutions? Either:</string>
+		<string name="rescue_party1"> 1. Wipe caches, and/or</string>
+		<string name="rescue_party2"> 2. Format data, and/or</string>
+		<string name="rescue_party3"> 3. Clean-flash your ROM.</string>
+		<string name="rescue_party4">The reported problem is:</string>
+
+		<string name="restore_system_context">Unable to get default context for {1} -- Android may not boot.</string>
+		
+		<string name="batch_progress">Progress</string>
 		<string name="recovery_busy">Recovery is busy</string>
 		<string name="status_delimeter">Status bar delimiter</string>
 		<string name="status_delimeter_shadow">Shadow</string>
