@@ -141,7 +141,7 @@
 				</listitem>
 				<!-- cram the appmgr items onto no more than 2 lines, so as to not break existing scripts-->
 				<listitem name="{@appmgr_title}">
-					<condition var1="disable_app_manager" op="!=" var2="1"/> <condition var1="utils_show" var2="1"/>
+					<condition var1="enable_app_manager" var2="1"/> <condition var1="utils_show" var2="1"/>
 					<icon res="apps"/> <action function="page">apps_load</action>
 				</listitem>
 				<listitem name="AromaFM">
