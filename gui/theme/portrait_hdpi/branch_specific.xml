@@ -1,7 +1,0 @@
-<?xml version="1.0"?>
-<recovery>
-	<variables>
-		<variable name="of_splash_max_size" value="1000000000"/>
-		<variable name="fox_branch" value="9"/>
-	</variables>
-</recovery>

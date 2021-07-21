@@ -23,7 +23,7 @@
 
 #define FOX_RECOVERY_NAME	"OrangeFox"
 #define FOX_MAIN_VERSION_STR    "R11.1"
-
+#define FOX_BRANCH		"9"
 #define TW_VERSION_STR 		FOX_VERSION
 #define BUILD_TYPE_STR 		FOX_BUILD_TYPE
 
@@ -47,6 +47,8 @@
 #define OF_CLOCK_POS_S             "cutout_clock"
 
 #define OF_ALLOW_DISABLE_NAVBAR_S  "allow_disable_nav"
+
+#define OF_SPLASH_MAX_SIZE_STR "of_splash_max_size"
 
 // *** OrangeFox - Variables ** //
 #include <stdio.h>

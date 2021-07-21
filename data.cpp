@@ -717,6 +717,7 @@ void DataManager::SetDefaultValues()
   mConst.SetValue(TW_VERSION_VAR, FOX_VERSION);
   mConst.SetValue(OF_MAINTAINER_STR, OF_MAINTAINER);
   mConst.SetValue(BUILD_TYPE_STR, FOX_BUILD_TYPE);
+  mConst.SetValue("fox_branch", FOX_BRANCH);
 
   #ifdef OF_SUPPORT_OZIP_DECRYPTION
     mConst.SetValue("of_support_ozip_decryption", "1");
@@ -729,9 +730,9 @@ void DataManager::SetDefaultValues()
 
   //[f/d] UI Vars
   #ifdef FOX_USE_NANO_EDITOR
-	  mConst.SetValue("fox_use_nano_editor", "1");
+  	mConst.SetValue("fox_use_nano_editor", "1");
   #else
-    mConst.SetValue("fox_use_nano_editor", "0");
+    	mConst.SetValue("fox_use_nano_editor", "0");
   #endif
 
   int of_status_placement = (atoi(OF_STATUS_H) / 2) - 28;
@@ -750,6 +751,8 @@ void DataManager::SetDefaultValues()
   mConst.SetValue(OF_CLOCK_POS_S, OF_CLOCK_POS);
   mConst.SetValue(OF_ALLOW_DISABLE_NAVBAR_S, OF_ALLOW_DISABLE_NAVBAR);
   mConst.SetValue(OF_FLASHLIGHT_ENABLE_STR, OF_FLASHLIGHT_ENABLE);
+
+  mConst.SetValue(OF_SPLASH_MAX_SIZE_STR, OF_SPLASH_MAX_SIZE);
 
   #ifdef FOX_ENABLE_LAB
     mConst.SetValue("fox_lab", "1");
@@ -781,8 +784,8 @@ void DataManager::SetDefaultValues()
     mData.SetValue("FOX_PRE_FLASH_SCRIPT", "0");
   #endif
 
-#ifdef FOX_DISABLE_APP_MANAGER
-    mConst.SetValue("disable_app_manager", "1");
+#ifdef FOX_ENABLE_APP_MANAGER
+    mConst.SetValue("enable_app_manager", "1");
 #endif
 
 #ifdef OF_DISABLE_EXTRA_ABOUT_PAGE
