@@ -201,6 +201,12 @@
 					<condition var1="general_back" op="!=" var2="reboot"/>
 					<data variable="tw_unmount_system"/>
 				</listitem>
+				<listitem name="{@unmount_vendor_install=Unmount Vendor before installing a ZIP}">
+					<condition var1="general_back" op="!=" var2="wipe"/>
+					<condition var1="general_back" op="!=" var2="reboot"/>
+					<condition var1="fox_branch" op="&gt;=" var2="10"/>
+					<data variable="tw_unmount_vendor"/>
+				</listitem>
 				<listitem name="{@inject_twrp_chk}">
 					<condition var1="tw_has_injecttwrp" var2="1"/>
 					<condition var1="general_back" var2="settings"/>

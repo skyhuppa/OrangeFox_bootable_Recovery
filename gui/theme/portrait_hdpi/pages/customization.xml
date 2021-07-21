@@ -178,7 +178,8 @@
 					<icon res="lockscreen"/>
 					<action function="page">ext_custom_lock</action>
 				</listitem>
-				<listitem name="{@sph_sph}"><condition var1="no_splash_change" op="!=" var2="1"/>
+				<listitem name="{@sph_sph}">
+					<condition var1="no_splash_change" op="!=" var2="1"/>
 					<icon res="boot_splash"/>
 					<action function="set">spl_logo_type=w</action>
 					<action function="set">spl_bg_color=#ED6F02</action>
@@ -691,9 +692,6 @@
 				</listitem>
 				<listitem name="{@cust_autoapply}">
 					<data variable="instant_apply"/>
-				</listitem>
-				<listitem name="{@cust_new_ota_screen}">
-					<data variable="ota_new_screen"/>
 				</listitem>
 				<listitem name="{@navpan_new_design}">
 					<data variable="new_nav_panel_des"/>
