@@ -131,6 +131,7 @@ int main(int argc, char **argv)
   property_set("ro.orangefox.type", FOX_BUILD_TYPE);
   property_set("ro.orangefox.variant", FOX_VARIANT);
   property_set("ro.orangefox.build", "orangefox");
+  property_set("ro.orangefox.boot.header.version", BOARD_BOOT_HEADER_VERSION);
 
   #if SDK_VERSION == 23
   TWFunc::Fox_Property_Set("ro.build.version.sdk", "23");
