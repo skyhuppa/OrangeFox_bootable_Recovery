@@ -1212,6 +1212,12 @@ void TWPartition::Setup_Data_Media() {
 		wipe_exclusions.add_absolute_dir(Mount_Point + "/misc/vold"); // adopted storage keys
 		ExcludeAll(Mount_Point + "/.layout_version");
 		ExcludeAll(Mount_Point + "/system/storage.xml");
+
+#ifdef OF_CUSTOM_BACKUP_EXCLUSIONS
+      		for (auto& dirs : TWFunc::Split_String(OF_CUSTOM_BACKUP_EXCLUSIONS, ";", true)) {
+      		    backup_exclusions.add_absolute_dir(dirs);
+      		}
+#endif
 	} else {
 		if (Mount(true) && TWFunc::Path_Exists(Mount_Point + "/media/0")) {
 			Storage_Path = Mount_Point + "/media/0";
