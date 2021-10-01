@@ -785,7 +785,7 @@ if (TWFunc::Path_Exists("/data/unencrypted/key/version")) {
 				ExcludeAll(Mount_Point + "/system/users/" + (*iter).userId + "/locksettings.db-wal");
 			}
 		}
-		TWPartition::Fox_Add_Backup_Exclusions();
+		//TWPartition::Fox_Add_Backup_Exclusions();
 		DataManager::SetValue(TW_CRYPTO_PWTYPE, pwd_type);
 		DataManager::SetValue("tw_crypto_pwtype_0", pwd_type);
 		DataManager::SetValue(TW_CRYPTO_PASSWORD, "");
