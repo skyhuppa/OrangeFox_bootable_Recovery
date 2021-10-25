@@ -4594,7 +4594,9 @@ string TWFunc::Get_MagiskBoot(void)
 {
 std::string magiskboot = "/sbin/magiskboot";
   if (!TWFunc::Path_Exists(magiskboot)) {
-     magiskboot = "/system/sbin/magiskboot";
+     magiskboot = "/system/bin/magiskboot";
+     if (!TWFunc::Path_Exists(magiskboot))
+       magiskboot = "magiskboot";
   }
   return magiskboot;
 }
