@@ -431,12 +431,6 @@ ifeq ($(OF_USE_GREEN_LED),0)
     LOCAL_CFLAGS += -DOF_USE_GREEN_LED='"0"'
 endif
 
-# whether to skip trying to decrypt adopted storage in unencrypted AOSP A12
-# (hopefully temporary - until AOSP 12 ROMs fix their storage.xml)
-ifeq ($(OF_SKIP_DECRYPTED_ADOPTED_STORAGE),1)
-    LOCAL_CFLAGS += -DOF_SKIP_DECRYPTED_ADOPTED_STORAGE='"1"'
-endif
-#
 ifneq ($(BOARD_BOOT_HEADER_VERSION),)
     LOCAL_CFLAGS += -DBOARD_BOOT_HEADER_VERSION='"$(BOARD_BOOT_HEADER_VERSION)"'
 else
