@@ -1227,10 +1227,17 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
 	  usleep(32);
 	  if (ret_val == INSTALL_SUCCESS)
 	    {
-	  	TWFunc::Run_Pre_Flash_Protocol(false);
+	  	bool run_rom_scripts = ((DataManager::GetIntValue(FOX_ZIP_INSTALLER_CODE) != 0) // only run after flashing a ROM
+	  	&& (DataManager::GetIntValue(FOX_INSTALL_PREBUILT_ZIP) != 1)); // don't run for built-in zips
+
+	  	if (run_rom_scripts)
+	  		TWFunc::RunFoxScript(FOX_PRE_ROM_FLASH_SCRIPT);
+
 	        ret_val = Run_Update_Binary (path, &Zip, wipe_cache, UPDATE_BINARY_ZIP_TYPE);
-	        usleep(32); 	
-	  	TWFunc::Run_Post_Flash_Protocol();
+	        usleep(32);
+
+	  	if (run_rom_scripts)
+	  		TWFunc::RunFoxScript(FOX_POST_ROM_FLASH_SCRIPT);
 	    }
 	  else 
 	   {
@@ -1256,7 +1263,13 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
 		PartitionManager.Mount_By_Path("/vendor", true);
 		TWFunc::Exec_Cmd("cp -f /sbin/sh /tmp/sh");
 		mount("/tmp/sh", "/system/bin/sh", "auto", MS_BIND, NULL);
+
+		TWFunc::RunFoxScript(FOX_PRE_ROM_FLASH_SCRIPT);
+
 		ret_val = Run_Update_Binary(path, &Zip, wipe_cache, AB_OTA_ZIP_TYPE);
+
+		TWFunc::RunFoxScript(FOX_POST_ROM_FLASH_SCRIPT);
+
 		umount("/system/bin/sh");
 		unlink("/tmp/sh");
 		if (!vendor_mount_state)
