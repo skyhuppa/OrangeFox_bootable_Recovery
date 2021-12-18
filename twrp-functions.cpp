@@ -226,13 +226,11 @@ static bool Treble_Is_Running(void)
 /* Return whether the device's storage is encrypted */
 static bool StorageIsEncrypted(void)
 {
-  if (PartitionManager.Storage_Is_Encrypted())
+  if (PartitionManager.Storage_Is_Encrypted() && DataManager::GetStrValue("fox_dfe_formatted") != "1")
   	return true;
-
   string res = "";
   string cmd = "cat /proc/mounts | grep /data | grep dm-";
   TWFunc::Exec_Cmd(cmd, res);
-  //gui_print("RESULT of command:\n|%s|\n is |%s|\n", cmd.c_str(), res.c_str());
   if (res.empty())
      return false;
   else
@@ -4958,24 +4956,37 @@ bool TWFunc::Has_Dynamic_Partitions(void) {
 
 void TWFunc::PostWipeEncryption(void) {
 #ifdef OF_RUN_POST_FORMAT_PROCESS
-  gui_print("I: Recreating /data/media/0...\n");
-  sleep(1);
-  TWFunc::Recursive_Mkdir("/data/media/0", false);
-  TWFunc::Recursive_Mkdir("/data/media/0/Fox/logs", false);
+  DataManager::SetValue("fox_dfe_formatted", "0");
 
-  gui_print("I: Copying recovery.log...\n");
-  TWFunc::copy_file("/tmp/recovery.log", "/data/media/0/Fox/logs/lastrecoverylog.log", 0644);
-  sleep(1);
+  // only run this if we are disabling forced encryption - otherwise, it can mess up Android 11+ encryption headers
+  if (DataManager::GetIntValue(FOX_DISABLE_FORCED_ENCRYPTION) == 1) {
+      DataManager::SetValue("fox_dfe_formatted", "1");
 
-  gui_print("I: Binding the internal storage...\n");
-  string cmd = "/sbin/mount";
-  if (!TWFunc::Path_Exists(cmd))
-     cmd = "/system/bin/mount";
-  cmd = cmd + " -o bind /data/media/0 /sdcard";
-  TWFunc::Exec_Cmd(cmd);
-  sleep(1);
-  sync();
-  gui_msg("done=Done.");
+      // give a warning for MIUI
+      if (TWFunc::Fox_Property_Get("orangefox.fresh.miui.install") == "1" || TWFunc::MIUI_Is_Running()) {
+         gui_print_color("warning", "\n- MIUI ROM installed and/or running. Be careful with disabling forced-encryption.\n\n");
+      }
+
+      gui_print("I: Recreating /data/media/0...\n");
+      sleep(1);
+      TWFunc::Recursive_Mkdir("/data/media/0", false);
+      TWFunc::Recursive_Mkdir("/data/media/0/Fox/logs", false);
+
+      gui_print("I: Copying recovery.log...\n");
+      TWFunc::copy_file("/tmp/recovery.log", "/data/media/0/Fox/logs/lastrecoverylog.log", 0644);
+      sleep(1);
+
+      gui_print("I: Binding the internal storage...\n");
+      string cmd = "/sbin/mount";
+      if (!TWFunc::Path_Exists(cmd))
+         cmd = "/system/bin/mount";
+      cmd = cmd + " -o bind /data/media/0 /sdcard";
+      TWFunc::Exec_Cmd(cmd);
+
+      sleep(1);
+      sync();
+      gui_msg("done=Done.");
+  }
 #endif
 }
 
