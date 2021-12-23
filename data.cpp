@@ -810,18 +810,8 @@ void DataManager::SetDefaultValues()
 #ifdef OF_USE_GREEN_LED
     mConst.SetValue("no_green_led", "1");
 #endif
-// =======
-
-  #ifdef OF_SUPPORT_PRE_FLASH_SCRIPT
-    mData.SetValue("FOX_PRE_FLASH_SCRIPT", "1");
-  #else
-    mData.SetValue("FOX_PRE_FLASH_SCRIPT", "0");
-  #endif
- 
-  mData.SetValue("of_reload_back", "main");
 
   //[f/d]
- 
 #ifndef TW_NO_HAPTICS
 	mPersist.SetValue("tw_button_vibrate", "40");
 	mPersist.SetValue("tw_keyboard_vibrate", "40");
