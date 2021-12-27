@@ -543,14 +543,13 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
 			TWFunc::copy_file("/system/bin/sh", "/tmp/sh", 0755);
 			mount("/tmp/sh", "/system/bin/sh", "auto", MS_BIND, NULL);
 
+			run_rom_scripts = true;
 			usleep(32);
 			TWFunc::RunFoxScript(FOX_PRE_ROM_FLASH_SCRIPT);
 
 			ret_val = Run_Update_Binary(path, wipe_cache, AB_OTA_ZIP_TYPE);
 
-			usleep(32);
-			TWFunc::RunFoxScript(FOX_POST_ROM_FLASH_SCRIPT);
-			usleep(32);
+			DataManager::SetValue(FOX_ZIP_INSTALLER_CODE, 1); // mark as custom ROM install
 
 			umount("/system/bin/sh");
 			unlink("/tmp/sh");
