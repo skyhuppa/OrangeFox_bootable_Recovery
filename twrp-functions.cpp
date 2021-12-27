@@ -4779,6 +4779,12 @@ string rom_finger_print = "";
   if (rom_finger_print.empty())
   	rom_finger_print = System_Property_Get("ro.build.fingerprint");
 
+  if (rom_finger_print.empty())
+  	rom_finger_print = System_Property_Get("ro.build.thumbprint");
+
+  if (rom_finger_print.empty())
+  	rom_finger_print = System_Property_Get("ro.vendor.build.thumbprint");
+
   if (!rom_finger_print.empty())
      {
   	LOGINFO("- Using the ROM's fingerprint (%s)\n", rom_finger_print.c_str());
