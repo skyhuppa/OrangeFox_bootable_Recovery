@@ -246,7 +246,16 @@ bool i = Path_Exists(orangefox_cfg);
    
    LOGINFO("DEBUG: OrangeFox: running the startup script...\n");
    Exec_Cmd(FOX_STARTUP_SCRIPT);
-   //Reload_Dynamic_Fstab("/etc/logical.fstab");
+
+   // set the incremental version to the ROM's
+   if (TWFunc::Path_Exists(orangefox_cfg)) {
+  	string incr_version = TWFunc::File_Property_Get (orangefox_cfg, "INCREMENTAL_VERSION");
+  	if (!incr_version.empty()) {
+  	   LOGINFO("- Using the ROM's incremental version (%s)\n", incr_version.c_str());
+  	   TWFunc::Fox_Property_Set("ro.build.version.incremental", incr_version);
+  	}
+    }
+
    return true;
 }
 
@@ -4721,6 +4730,12 @@ string tmp = "\"";
 
   if (rom_finger_print.empty())
   	rom_finger_print = System_Property_Get("ro.build.fingerprint");
+
+  if (rom_finger_print.empty())
+  	rom_finger_print = System_Property_Get("ro.build.thumbprint");
+
+  if (rom_finger_print.empty())
+  	rom_finger_print = System_Property_Get("ro.vendor.build.thumbprint");
 
   if (!rom_finger_print.empty())
      {
