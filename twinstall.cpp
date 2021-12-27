@@ -883,7 +883,7 @@ static int Run_Update_Binary(const char *path, ZipWrap * Zip, int *wipe_cache,
       LOGINFO("Legacy property environment not used in updater.\n");
     }
   else if (switch_to_legacy_properties() != 0)
-    {				/* Set legacy properties */
+    {				// Set legacy properties 
       LOGERR
 	("Legacy property environment did not initialize successfully. Properties may not be detected.\n");
     }
@@ -1029,7 +1029,7 @@ static int Run_Update_Binary(const char *path, ZipWrap * Zip, int *wipe_cache,
      }
 
 #ifndef TW_NO_LEGACY_PROPS
-  /* Unset legacy properties */
+  // Unset legacy properties
   if (legacy_props_path_modified)
     {
       if (switch_to_new_properties() != 0)
@@ -1053,11 +1053,10 @@ static int Run_Update_Binary(const char *path, ZipWrap * Zip, int *wipe_cache,
   return INSTALL_SUCCESS;
 }
 
-
-
 int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
 {
   int ret_val, zip_verify = 1, unmount_system = 1;
+  bool run_rom_scripts = false;
 
   if (strcmp(path, "error") == 0)
     {
@@ -1227,7 +1226,8 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
 	  usleep(32);
 	  if (ret_val == INSTALL_SUCCESS)
 	    {
-	  	bool run_rom_scripts = ((DataManager::GetIntValue(FOX_ZIP_INSTALLER_CODE) != 0) // only run after flashing a ROM
+
+		run_rom_scripts = ((DataManager::GetIntValue(FOX_ZIP_INSTALLER_CODE) != 0) // only run after flashing a ROM
 	  	&& (DataManager::GetIntValue(FOX_INSTALL_PREBUILT_ZIP) != 1)); // don't run for built-in zips
 
 	  	if (run_rom_scripts)
@@ -1264,11 +1264,14 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
 		TWFunc::Exec_Cmd("cp -f /sbin/sh /tmp/sh");
 		mount("/tmp/sh", "/system/bin/sh", "auto", MS_BIND, NULL);
 
+		run_rom_scripts = true;
+		usleep(32);
 		TWFunc::RunFoxScript(FOX_PRE_ROM_FLASH_SCRIPT);
 
 		ret_val = Run_Update_Binary(path, &Zip, wipe_cache, AB_OTA_ZIP_TYPE);
-
-		TWFunc::RunFoxScript(FOX_POST_ROM_FLASH_SCRIPT);
+		
+		usleep(32);
+		DataManager::SetValue(FOX_ZIP_INSTALLER_CODE, 1); // mark as custom ROM install
 
 		umount("/system/bin/sh");
 		unlink("/tmp/sh");
@@ -1365,7 +1368,12 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
       usleep(16);
       TWFunc::Check_OrangeFox_Overwrite_FromROM(false, path);
    }
- 
+
+   if (run_rom_scripts) {
+   	usleep(32);
+   	TWFunc::RunFoxScript(FOX_POST_ROM_FLASH_SCRIPT);
+   }
+
   return ret_val;
 }
 
