@@ -1,7 +1,7 @@
 /*
 	Copyright 2012 to 2017 bigbiff/Dees_Troy TeamWin
 	
-	Copyright (C) 2018-2021 OrangeFox Recovery Project
+	Copyright (C) 2018-2022 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 	
 	This file is part of TWRP/TeamWin Recovery Project.
@@ -525,8 +525,6 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
 	  				TWFunc::RunFoxScript(FOX_PRE_ROM_FLASH_SCRIPT);
 
 				ret_val = Run_Update_Binary(path, wipe_cache, UPDATE_BINARY_ZIP_TYPE);
-
-				DataManager::SetValue(FOX_ZIP_INSTALLER_CODE, 1); // mark as custom ROM install
 			}
 		}
 	} else {
