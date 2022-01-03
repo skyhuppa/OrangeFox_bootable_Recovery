@@ -1,5 +1,5 @@
 # Copyright (C) 2007 The Android Open Source Project
-# Copyright (C) 2018-2021 OrangeFox Recovery Project
+# Copyright (C) 2018-2022 OrangeFox Recovery Project
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -401,8 +401,13 @@ ifneq ($(OF_ENABLE_USB_STORAGE),1)
 endif
 
 # post-format
+ifeq ($(OF_FORCE_CREATE_DATA_MEDIA_ON_FORMAT),1)
+   OF_RUN_POST_FORMAT_PROCESS := 1
+   LOCAL_CFLAGS += -DOF_FORCE_CREATE_DATA_MEDIA_ON_FORMAT='"1"'
+endif
+
 ifeq ($(OF_RUN_POST_FORMAT_PROCESS),1)
-    $(warning "OF_RUN_POST_FORMAT_PROCESS" is deprecated. It causes issues with Android 11 encryption, and will only be processed if "forced encryption" is being disabled ...)
+    $(warning "OF_RUN_POST_FORMAT_PROCESS" is deprecated. It causes issues with Android 11+ encryption of the internal storage)
     LOCAL_CFLAGS += -DOF_RUN_POST_FORMAT_PROCESS='"1"'
 endif
 

@@ -2,7 +2,7 @@
 	Copyright 2012 bigbiff/Dees_Troy TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-	Copyright (C) 2018-2021 OrangeFox Recovery Project
+	Copyright (C) 2018-2022 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -4973,15 +4973,23 @@ bool TWFunc::Has_Dynamic_Partitions(void) {
 void TWFunc::PostWipeEncryption(void) {
 #ifdef OF_RUN_POST_FORMAT_PROCESS
   DataManager::SetValue("fox_dfe_formatted", "0");
+  bool create_data_media = 
+  #ifdef OF_FORCE_CREATE_DATA_MEDIA_ON_FORMAT
+  true;
+  #else
+  (DataManager::GetIntValue(FOX_DISABLE_FORCED_ENCRYPTION) == 1);
+  #endif
 
-  // only run this if we are disabling forced encryption - otherwise, it can mess up Android 11+ encryption headers
-  if (DataManager::GetIntValue(FOX_DISABLE_FORCED_ENCRYPTION) == 1) {
-      DataManager::SetValue("fox_dfe_formatted", "1");
+  // only run this if we are disabling forced encryption, or if we are forcing it (it can mess up Android 11+ encryption of the internal storage)
+  if (create_data_media) {
 
       // give a warning for MIUI
       if (TWFunc::Fox_Property_Get("orangefox.fresh.miui.install") == "1" || TWFunc::MIUI_Is_Running()) {
          gui_print_color("warning", "\n- MIUI ROM installed and/or running. Be careful with disabling forced-encryption.\n\n");
       }
+
+      if (DataManager::GetIntValue(FOX_DISABLE_FORCED_ENCRYPTION) == 1)
+      	DataManager::SetValue("fox_dfe_formatted", "1");
 
       gui_print("I: Recreating /data/media/0...\n");
       sleep(1);
