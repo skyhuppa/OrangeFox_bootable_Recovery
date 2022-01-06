@@ -92,19 +92,10 @@ int OrangeFox_Startup_Executed = 0;
 int Fox_Has_Welcomed = 0;
 string Fox_Current_ROM = "";
 
-/*
-static const bool Is_AB_Device =
-  #ifdef OF_AB_DEVICE
-  	true;
-  #else
-  	false;
-  #endif
-*/
-
 /* is this an A/B device? */
 static bool Is_AB_Device() 
 {
-  #ifdef OF_AB_DEVICE
+  #if defined(OF_AB_DEVICE) || defined(AB_OTA_UPDATER)
      return true;
   #endif
   string propfile = "/default.prop";
@@ -2094,7 +2085,7 @@ void TWFunc::Disable_Stock_Recovery_Replace_Func(void)
 // Disable flashing of stock recovery
 void TWFunc::Disable_Stock_Recovery_Replace(void)
 {
-  #ifdef OF_VANILLA_BUILD
+  #if defined(OF_VANILLA_BUILD) || defined(OF_AB_DEVICE) || defined(AB_OTA_UPDATER)
   return;
   #endif
   if (PartitionManager.Mount_By_Path(PartitionManager.Get_Android_Root_Path(), false))
@@ -2920,7 +2911,7 @@ bool TWFunc::PackRepackImage_MagiskBoot(bool do_unpack, bool is_boot)
  
   TWPartition *Boot = PartitionManager.Find_Partition_By_Path("/boot");
 
-#ifdef OF_AB_DEVICE
+#if defined(OF_AB_DEVICE) || defined(AB_OTA_UPDATER)
   if (Boot != NULL)
     {
        tmpstr = Boot->Actual_Block_Device;
@@ -3047,7 +3038,7 @@ bool TWFunc::PackRepackImage_MagiskBoot(bool do_unpack, bool is_boot)
 	        AppendLineToFile (cmd_script2, magiskboot_sbin + " repack \"" + tmpstr + "\" > /dev/null 2>&1");
 	        AppendLineToFile (cmd_script2, "[ $? == 0 ] && LOGINFO \"- Succeeded.\" || abort \"- Repacking of image failed.\"");
 	        AppendLineToFile (cmd_script2, "LOGINFO \"- Flashing repacked image ...\"");
-	        #ifdef OF_AB_DEVICE
+	        #if defined(OF_AB_DEVICE) || defined(AB_OTA_UPDATER)
 	        AppendLineToFile (cmd_script2, "dd if=new-boot.img of=" + tmpstr + " > /dev/null 2>&1");
 	        #else
 	        AppendLineToFile (cmd_script2, "flash_image \"" +  tmpstr + "\" new-boot.img");
@@ -4497,7 +4488,13 @@ int TWFunc::Patch_DMVerity_ForcedEncryption_Magisk(void)
 std::string keepdmverity, keepforcedencryption;
 std::string zipname = FFiles_dir + "/OF_verity_crypt/OF_verity_crypt.zip";
 int res=0, wipe_cache=0;
-std::string magiskboot = TWFunc::Get_MagiskBoot();
+
+  #if defined(AB_OTA_UPDATER) || defined(OF_AB_DEVICE)
+  gui_print_color("warning", "A/B device - skipping the disable forced-encryption patches.\n");
+  return 0;
+  #endif
+
+  std::string magiskboot = TWFunc::Get_MagiskBoot();
   if (!TWFunc::Path_Exists(magiskboot))
      {
         gui_print("ERROR - cannot find magiskboot\n");

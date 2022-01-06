@@ -1661,7 +1661,7 @@ int TWPartitionManager::Wipe_By_Path(string Path)
   if (Local_Path == "/system")
 	Local_Path = Get_Android_Root_Path();		
 
-#ifdef OF_AB_DEVICE
+#if defined(AB_OTA_UPDATER) || defined(OF_AB_DEVICE)
   string cache = TWFunc::get_log_dir();
   if (Local_Path == "/cache" && (cache.find(Local_Path) == std::string::npos || !TWFunc::Path_Exists("/cache/.")))
     return true;
@@ -1713,7 +1713,7 @@ int TWPartitionManager::Wipe_By_Path(string Path, string New_File_System)
   bool found = false;
   string Local_Path = TWFunc::Get_Root_Path(Path);
 
-#ifdef OF_AB_DEVICE
+#if defined(AB_OTA_UPDATER) || defined(OF_AB_DEVICE)
   string cache = TWFunc::get_log_dir();
   if (Local_Path == "/cache" && (cache.find(Local_Path) == std::string::npos || !TWFunc::Path_Exists("/cache/.")))
     return true;
