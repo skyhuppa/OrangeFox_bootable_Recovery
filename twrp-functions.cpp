@@ -5011,7 +5011,7 @@ void TWFunc::PostWipeEncryption(void) {
       TWFunc::Exec_Cmd(cmd);
 
       if (DataManager::GetIntValue(FOX_DISABLE_FORCED_ENCRYPTION) != 1)
-      	gui_print_color("warning", "It is likely that the internal storage will remain unencrypted.\n");
+      	gui_print_color("warning", "It is possible that the internal storage will remain unencrypted.\n");
 
       sleep(1);
       sync();
