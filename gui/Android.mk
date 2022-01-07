@@ -3,6 +3,8 @@ include $(CLEAR_VARS)
 
 LOCAL_CFLAGS := -fno-strict-aliasing
 
+include $(LOCAL_PATH)/../orangefox.mk
+
 LOCAL_SRC_FILES := \
     gui.cpp \
     resources.cpp \
@@ -69,27 +71,6 @@ ifeq ($(TWRP_EVENT_LOGGING), true)
 endif
 ifneq ($(TW_USE_KEY_CODE_TOUCH_SYNC),)
     LOCAL_CFLAGS += -DTW_USE_KEY_CODE_TOUCH_SYNC=$(TW_USE_KEY_CODE_TOUCH_SYNC)
-endif
-
-ifeq ($(OF_SUPPORT_OZIP_DECRYPTION),1)
-LOCAL_CFLAGS += -DOF_SUPPORT_OZIP_DECRYPTION='"1"'
-ifneq ($(TW_OZIP_DECRYPT_KEY),)
-    LOCAL_CFLAGS += -DTW_OZIP_DECRYPT_KEY=\"$(TW_OZIP_DECRYPT_KEY)\"
-else
-    LOCAL_CFLAGS += -DTW_OZIP_DECRYPT_KEY=0
-endif
-endif
-
-ifeq ($(OF_LEGACY_SHAR512),1)
-    LOCAL_CFLAGS += -DOF_LEGACY_SHAR512=1
-endif
-
-ifeq ($(FOX_ENABLE_LAB),1)
-    LOCAL_CFLAGS += -DFOX_ENABLE_LAB='"1"'
-endif
-
-ifeq ($(FOX_USE_NANO_EDITOR), 1)
-    LOCAL_CFLAGS += -DFOX_USE_NANO_EDITOR='"1"'
 endif
 
 ifneq ($(TW_NO_SCREEN_BLANK),)
