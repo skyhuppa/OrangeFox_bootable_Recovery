@@ -2,7 +2,7 @@
 	Copyright 2012-2020 TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-	Copyright (C) 2018-2020 OrangeFox Recovery Project
+	Copyright (C) 2018-2022 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -54,7 +54,7 @@ void startupArgs::parse(int *argc, char ***argv) {
 				LOGERR("argument error specifying zip file\n");
 			} else {
 				std::string ORSCommand = "install " + arg;
-				SkipDecryption = arg.find("@") == 1;
+				SkipDecryption = arg.find("@") == 0;
 				if (!OpenRecoveryScript::Insert_ORS_Command(ORSCommand))
 					break;
 			}
