@@ -559,7 +559,7 @@ int TWinstall_zip(const char *path, int *wipe_cache, bool check_for_digest)
 		} else {
 			ZipString binary_name("ui.xml");
 			ZipEntry binary_entry;
-			if (FindEntry(Zip, binary_name, &binary_entry) != 0) {
+			if (FindEntry(Zip, binary_name, &binary_entry) == 0) {
 				LOGINFO("OrangeFox theme zip\n");
 				ret_val = Install_Theme(path, Zip);
 			} else {
