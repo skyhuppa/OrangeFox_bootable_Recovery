@@ -3688,13 +3688,13 @@ bool TWPartitionManager::Decrypt_Adopted() {
       		if (TWFunc::IsBinaryXML(path)) {
          		LOGINFO("Android 12+: '%s' is binary. Skipping adopted storage decryption.\n", path.c_str());
          		return false;
-      		} 
-      		else 
+      		}
+      		else
       			LOGINFO("Android 12+: '%s' is not in binary format. Proceeding...\n", path.c_str());
   	}
 
 	LOGINFO("Decrypt adopted storage starting\n");
-	char* xmlFile = PageManager::LoadFileToBuffer(path.c_str(), NULL);
+	char* xmlFile = PageManager::LoadFileToBuffer(path, NULL);
 	xml_document<> *doc = NULL;
 	xml_node<>* volumes = NULL;
 	string Primary_Storage_UUID = "";
