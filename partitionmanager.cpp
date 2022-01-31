@@ -3666,137 +3666,122 @@ void TWPartitionManager::Translate_Partition_Display_Names()
   DataManager::SetBackupFolder();
 }
 
-bool TWPartitionManager::Decrypt_Adopted()
-{
+bool TWPartitionManager::Decrypt_Adopted() {
 #ifdef TW_INCLUDE_CRYPTO
-  bool ret = false;
-  if (!Mount_By_Path("/data", false))
-    {
-      LOGERR("Cannot decrypt adopted storage because /data will not mount\n");
-      return false;
-    }
 
-  string path = "/data/system/storage.xml";
-  if (TWFunc::Get_Android_SDK_Version() > 30 && TWFunc::Path_Exists(path)) {
-      if (TWFunc::IsBinaryXML(path)) {
-         LOGINFO("Android 12: storage.xml is binary. Skipping adopted storage decryption.\n");
-         return false;
-      } else LOGINFO("Android 12: storage.xml is not in binary format. Proceeding...\n");
-  }
+	int SDK = TWFunc::Get_Android_SDK_Version();
+	#if defined(OF_SKIP_DECRYPTED_ADOPTED_STORAGE)
+  	if (SDK > 30) {
+  	   LOGINFO("Decrypt_Adopted: skipping adopted storage decryption on Android 12+\n");
+  	   return false;
+  	}
+	#endif
 
-  LOGINFO("Decrypt adopted storage starting\n");
-  char *xmlFile =
-    PageManager::LoadFileToBuffer(path, NULL);
-  xml_document <> *doc = NULL;
-  xml_node <> *volumes = NULL;
-  string Primary_Storage_UUID = "";
-  if (xmlFile != NULL)
-    {
-      LOGINFO("successfully loaded storage.xml\n");
-      doc = new xml_document <> ();
-      doc->parse < 0 > (xmlFile);
-      volumes = doc->first_node("volumes");
-      if (volumes)
-	{
-	  xml_attribute <> *psuuid =
-	    volumes->first_attribute("primaryStorageUuid");
-	  if (psuuid)
-	    {
-	      Primary_Storage_UUID = psuuid->value();
-	    }
+	bool ret = false;
+	if (!Mount_By_Path("/data", false)) {
+		LOGERR("Cannot decrypt adopted storage because /data will not mount\n");
+		return false;
 	}
-    }
-  else
-    {
-      LOGINFO("No /data/system/storage.xml for adopted storage\n");
-      return false;
-    }
-  std::vector < TWPartition * >::iterator adopt;
-  for (adopt = Partitions.begin(); adopt != Partitions.end(); adopt++)
-    {
-      if ((*adopt)->Removable && (*adopt)->Is_Present)
-	{
-	  if ((*adopt)->Decrypt_Adopted() == 0)
-	    {
-	      ret = true;
-	      if (volumes)
-		{
-		  xml_node <> *volume = volumes->first_node("volume");
-		  while (volume)
-		    {
-		      xml_attribute <> *guid =
-			volume->first_attribute("partGuid");
-		      if (guid)
-			{
-			  string GUID = (*adopt)->Adopted_GUID.c_str();
-			  GUID.insert(8, "-");
-			  GUID.insert(13, "-");
-			  GUID.insert(18, "-");
-			  GUID.insert(23, "-");
 
-			  if (strcasecmp(GUID.c_str(), guid->value()) == 0)
-			    {
-			      xml_attribute <> *attr =
-				volume->first_attribute("nickname");
-			      if (attr && attr->value()
-				  && strlen(attr->value()) > 0)
-				{
-				  (*adopt)->Storage_Name = attr->value();
-				  (*adopt)->Display_Name =
-				    (*adopt)->Storage_Name;
-				  (*adopt)->Backup_Display_Name =
-				    (*adopt)->Storage_Name;
-				  LOGINFO
-				    ("storage name from storage.xml is '%s'\n",
-				     attr->value());
-				}
-			      attr = volume->first_attribute("fsUuid");
-			      if (attr && !Primary_Storage_UUID.empty()
-				  && strcmp(Primary_Storage_UUID.c_str(),
-					    attr->value()) == 0)
-				{
-				  TWPartition *Dat =
-				    Find_Partition_By_Path("/data");
-				  if (Dat)
-				    {
-				      LOGINFO
-					("Internal storage is found on adopted storage '%s'\n",
-					 (*adopt)->Display_Name.c_str());
-				      LOGINFO
-					("Changing '%s' to point to '%s'\n",
-					 Dat->Symlink_Mount_Point.c_str(),
-					 (*adopt)->Storage_Path.c_str());
-				      (*adopt)->Symlink_Mount_Point =
-					Dat->Symlink_Mount_Point;
-				      Dat->Symlink_Mount_Point = "";
-				      // Toggle mounts to ensure that the symlink mount point (probably /sdcard) is mounted to the right location
-				      Dat->UnMount(false);
-				      Dat->Mount(false);
-				      (*adopt)->UnMount(false);
-				      (*adopt)->Mount(false);
-				    }
-				}
-			      break;
-			    }
+  	string path = "/data/system/storage.xml";
+  	if (SDK > 30 && TWFunc::Path_Exists(path)) {
+      		if (TWFunc::IsBinaryXML(path)) {
+         		LOGINFO("Android 12+: '%s' is binary. Skipping adopted storage decryption.\n", path.c_str());
+         		return false;
+      		} 
+      		else 
+      			LOGINFO("Android 12+: '%s' is not in binary format. Proceeding...\n", path.c_str());
+  	}
+
+	LOGINFO("Decrypt adopted storage starting\n");
+	char* xmlFile = PageManager::LoadFileToBuffer(path.c_str(), NULL);
+	xml_document<> *doc = NULL;
+	xml_node<>* volumes = NULL;
+	string Primary_Storage_UUID = "";
+	if (xmlFile != NULL) {
+		LOGINFO("successfully loaded %s\n", path.c_str());
+		doc = new xml_document<>();
+		doc->parse<0>(xmlFile);
+		volumes = doc->first_node("volumes");
+		if (volumes) {
+			xml_attribute<>* psuuid = volumes->first_attribute("primaryStorageUuid");
+			if (psuuid) {
+				Primary_Storage_UUID = psuuid->value();
 			}
-		      volume = volume->next_sibling("volume");
-		    }
 		}
-	      Update_System_Details();
-	      Output_Partition((*adopt));
-	    }
+	} else {
+		LOGINFO("No %s for adopted storage\n", path.c_str());
+		return false;
 	}
-    }
-  if (xmlFile)
-    {
-      doc->clear();
-      delete doc;
-      free(xmlFile);
-    }
-  return ret;
+	std::vector<TWPartition*>::iterator adopt;
+	for (adopt = Partitions.begin(); adopt != Partitions.end(); adopt++) {
+		if ((*adopt)->Removable && !(*adopt)->Is_Present && (*adopt)->Adopted_Mount_Delay > 0) {
+			// On some devices, the external mmc driver takes some time
+			// to recognize the card, in which case the "actual block device"
+			// would not have been found yet. We wait the specified delay
+			// and then try again.
+			LOGINFO("Sleeping %d seconds for adopted storage.\n", (*adopt)->Adopted_Mount_Delay);
+			sleep((*adopt)->Adopted_Mount_Delay);
+			(*adopt)->Find_Actual_Block_Device();
+		}
+
+		if ((*adopt)->Removable && (*adopt)->Is_Present) {
+			if ((*adopt)->Decrypt_Adopted() == 0) {
+				ret = true;
+				if (volumes) {
+					xml_node<>* volume = volumes->first_node("volume");
+					while (volume) {
+						xml_attribute<>* guid = volume->first_attribute("partGuid");
+						if (guid) {
+							string GUID = (*adopt)->Adopted_GUID.c_str();
+							GUID.insert(8, "-");
+							GUID.insert(13, "-");
+							GUID.insert(18, "-");
+							GUID.insert(23, "-");
+
+							if (strcasecmp(GUID.c_str(), guid->value()) == 0) {
+								xml_attribute<>* attr = volume->first_attribute("nickname");
+								if (attr && attr->value() && strlen(attr->value()) > 0) {
+									(*adopt)->Storage_Name = attr->value();
+									(*adopt)->Display_Name = (*adopt)->Storage_Name;
+									(*adopt)->Backup_Display_Name = (*adopt)->Storage_Name;
+									LOGINFO("storage name from storage.xml is '%s'\n", attr->value());
+								}
+								attr = volume->first_attribute("fsUuid");
+								if (attr && !Primary_Storage_UUID.empty() && strcmp(Primary_Storage_UUID.c_str(), attr->value()) == 0) {
+									TWPartition* Dat = Find_Partition_By_Path("/data");
+									if (Dat) {
+										LOGINFO("Internal storage is found on adopted storage '%s'\n", (*adopt)->Display_Name.c_str());
+										LOGINFO("Changing '%s' to point to '%s'\n", Dat->Symlink_Mount_Point.c_str(), (*adopt)->Storage_Path.c_str());
+										(*adopt)->Symlink_Mount_Point = Dat->Symlink_Mount_Point;
+										Dat->Symlink_Mount_Point = "";
+										// Toggle mounts to ensure that the symlink mount point (probably /sdcard) is mounted to the right location
+										Dat->UnMount(false);
+										Dat->Mount(false);
+										(*adopt)->UnMount(false);
+										(*adopt)->Mount(false);
+									}
+								}
+								break;
+							}
+						}
+						volume = volume->next_sibling("volume");
+					}
+				}
+				Update_System_Details();
+				Output_Partition((*adopt));
+			}
+		}
+	}
+	if (xmlFile) {
+		doc->clear();
+		delete doc;
+		free(xmlFile);
+	}
+	return ret;
 #else
-  LOGINFO("Decrypt_Adopted: no crypto support\n");
-  return false;
+	LOGINFO("Decrypt_Adopted: no crypto support\n");
+	return false;
 #endif
 }
 

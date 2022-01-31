@@ -429,4 +429,9 @@ else
     LOCAL_CFLAGS += -DTW_OZIP_DECRYPT_KEY=0
 endif
 endif
+
+# adopted storage
+ifeq ($(OF_SKIP_DECRYPTED_ADOPTED_STORAGE),1)
+    LOCAL_CFLAGS += -DOF_SKIP_DECRYPTED_ADOPTED_STORAGE='"1"'
+endif
 #
