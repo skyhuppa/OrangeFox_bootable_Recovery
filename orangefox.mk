@@ -452,4 +452,9 @@ endif
 ifeq ($(OF_MOUNT_NON_DYNAMIC_RW),1)
     LOCAL_CFLAGS += -DOF_MOUNT_NON_DYNAMIC_RW='"1"'
 endif
+
+# adopted storage
+ifeq ($(OF_SKIP_DECRYPTED_ADOPTED_STORAGE),1)
+    LOCAL_CFLAGS += -DOF_SKIP_DECRYPTED_ADOPTED_STORAGE='"1"'
+endif
 #
