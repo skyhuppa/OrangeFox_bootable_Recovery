@@ -2,7 +2,7 @@
 	Copyright 2013 to 2020 TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-	Copyright (C) 2020 OrangeFox Recovery Project
+	Copyright (C) 2020-2022 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -225,11 +225,6 @@ bool twrpRepacker::Repack_Image_And_Flash(const std::string& Target_Image, const
 				return false;
 			}
 			std::rename(copy_compressed_image.c_str(), orig_compressed_image.c_str());
-		}
-
-		if (TWFunc::Exec_Cmd(command) != 0) {
-			gui_msg(Msg(msg::kError, "repack_error=Error repacking image."));
-			return false;
 		}
 
 		if (TWFunc::Exec_Cmd(command) != 0) {
