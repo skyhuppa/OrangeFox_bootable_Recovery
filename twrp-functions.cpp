@@ -2928,7 +2928,7 @@ bool TWFunc::PackRepackImage_MagiskBoot(bool do_unpack, bool is_boot)
 		          }
 		      	else
 		             keepforcedencryption = "true";
-		        		
+
 	              AppendLineToFile (cmd_script, "cp -af ramdisk.cpio ramdisk.cpio.orig");
 	              AppendLineToFile (cmd_script, "LOGINFO \"- Patching ramdisk (verity/encryption) ...\"");
 	              AppendLineToFile (cmd_script, magiskboot_sbin + " cpio ramdisk.cpio \"patch " + keepdmverity + keepforcedencryption + "\" > /dev/null 2>&1");
@@ -4427,6 +4427,7 @@ void TWFunc::Patch_AVB20(bool silent)
 std::string zipname = FFiles_dir + "/OF_avb20/OF_avb20.zip";
 int res=0, wipe_cache=0;
 std::string magiskboot = TWFunc::Get_MagiskBoot();
+
   if (!TWFunc::Path_Exists(magiskboot))
      {
         gui_print("ERROR - cannot find magiskboot\n");
@@ -5050,4 +5051,18 @@ bool TWFunc::Fox_Force_Mount_Partitions_RW() {
 #endif
 }
 
+/* for magiskboot 24+
+   whether magiskboot repack should patch vbmeta
+   returns:
+ 	true  = it should be patched
+ 	false = no patching is needed
+*/
+bool TWFunc::Magiskboot_Repack_Patch_VBMeta()
+{
+   #if defined(OF_PATCH_VBMETA_FLAG)
+   return true;
+   #else
+   return false;
+   #endif
+}
 //

@@ -91,6 +91,12 @@ ifeq ($(OF_NO_MIUI_PATCH_WARNING),1)
     LOCAL_CFLAGS += -DOF_NO_MIUI_PATCH_WARNING='"1"'
 endif
 
+# enable vbmeta patch in magiskboot 24+
+ifeq ($(OF_PATCH_VBMETA_FLAG),1)
+    LOCAL_CFLAGS += -DOF_PATCH_VBMETA_FLAG='"1"'
+    $(warning Do not use "OF_PATCH_VBMETA_FLAG" unless you are sure that it is needed!)
+endif
+
 ifeq ($(AB_OTA_UPDATER),true)
     OF_AB_DEVICE := 1
 endif
