@@ -41,6 +41,14 @@ else
     LOCAL_CFLAGS += -DFOX_DEVICE_MODEL='"$(FOX_DEVICE_MODEL)"'
 endif
 
+# enable vbmeta patch in magiskboot 24+
+ifeq ($(OF_PATCH_VBMETA_FLAG),1)
+    LOCAL_CFLAGS += -DOF_PATCH_VBMETA_FLAG='"1"'
+    export OF_USE_MAGISKBOOT_FOR_ALL_PATCHES=1
+    export OF_USE_MAGISKBOOT=1
+    $(warning Do not use "OF_PATCH_VBMETA_FLAG" unless you are sure that it is needed!)
+endif
+
 ifeq ($(AB_OTA_UPDATER),true)
     export OF_AB_DEVICE=1
 endif
