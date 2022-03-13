@@ -81,13 +81,13 @@ uint64_t TWExclude::Get_Folder_Size(const string& Path) {
 			if (i < 10) // eventually stop increasing the count
 			   i++;
 
-			if (i < 5) {
+			if (i < 4) {
 			   gui_msg(Msg(msg::kError, "error_opening_strerr=Error opening: '{1}' ({2})")(FullPath)(strerror(errno)));
 			   LOGINFO("Real error: Unable to stat '%s'\n", FullPath.c_str());
 			}
 
 			if (i == 7) // ok, the errors continue - so, inform the user
-			   LOGERR("Persistent read errors! There are many more errors. Look in /tmp/recovery.log\n\n");
+			   LOGERR("** Persistent read errors! **\nDecryption has probably failed!\n\n");
 
 			continue;
 		}
