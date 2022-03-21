@@ -60,6 +60,9 @@
 //#include "f2fs_sparseblock.h"
 //#include "EncryptInplace.h"
 //#include "Process.h"
+#if TW_KEYMASTER_MAX_API > 1
+#include <hardware/keymaster2.h>
+#endif
 #if TW_KEYMASTER_MAX_API == 3
 #include "../ext4crypt/Keymaster3.h"
 #endif
@@ -74,11 +77,6 @@
 #include <openssl/sha.h>
 #include <hardware/keymaster0.h>
 #include <hardware/keymaster1.h>
-
-#ifndef OF_DISABLE_KEYMASTER2
-#include <hardware/keymaster2.h>
-#endif
-
 #endif
 //#include "android-base/properties.h"
 //#include <bootloader_message/bootloader_message.h>
@@ -139,9 +137,9 @@ static_assert(INTERMEDIATE_BUF_SIZE == SCRYPT_LEN,
 static unsigned char saved_master_key[MAX_KEY_LEN];
 static char *saved_mount_point;
 static int  master_key_saved = 0;
-//static struct crypt_persist_data *persist_data = NULL;
+static struct crypt_persist_data *persist_data = NULL;
 
-//static int previous_type;
+static int previous_type;
 
 static char key_fname[PROPERTY_VALUE_MAX] = "";
 static char real_blkdev[PROPERTY_VALUE_MAX] = "";
@@ -154,7 +152,7 @@ static void get_blkdev_size(int fd, unsigned long *nr_sec)
   }
 }
 
-#if TW_KEYMASTER_MAX_API == 0
+#if TW_KEYMASTER_MAX_API == 0 //TW_KEYMASTER_MAX_API
 static int keymaster_init(keymaster_device_t **keymaster_dev)
 {
     int rc;
@@ -179,13 +177,10 @@ out:
     *keymaster_dev = NULL;
     return rc;
 }
-#else //TW_KEYMASTER_MAX_API == 0
+#elif TW_KEYMASTER_MAX_API > 1
 static int keymaster_init(keymaster0_device_t **keymaster0_dev,
-                          keymaster1_device_t **keymaster1_dev
-                          #ifndef OF_DISABLE_KEYMASTER2
-                          ,keymaster2_device_t **keymaster2_dev
-                          #endif
-			  )
+                          keymaster1_device_t **keymaster1_dev,
+			  keymaster2_device_t **keymaster2_dev)
 {
     int rc;
 
@@ -201,13 +196,50 @@ static int keymaster_init(keymaster0_device_t **keymaster0_dev,
 
     *keymaster0_dev = NULL;
     *keymaster1_dev = NULL;
-    #ifndef OF_DISABLE_KEYMASTER2
     *keymaster2_dev = NULL;
     if (mod->module_api_version == KEYMASTER_MODULE_API_VERSION_2_0) {
         printf("Found keymaster2 module, using keymaster2 API.\n");
         rc = keymaster2_open(mod, keymaster2_dev);
-    } else
-    #endif
+    } else if (mod->module_api_version == KEYMASTER_MODULE_API_VERSION_1_0) {
+        printf("Found keymaster1 module, using keymaster1 API.\n");
+        rc = keymaster1_open(mod, keymaster1_dev);
+    } else {
+        printf("Found keymaster0 module, using keymaster0 API.\n");
+        rc = keymaster0_open(mod, keymaster0_dev);
+    }
+
+    if (rc) {
+        printf("could not open keymaster device in %s (%s)\n",
+              KEYSTORE_HARDWARE_MODULE_ID, strerror(-rc));
+        goto err;
+    }
+
+    return 0;
+
+err:
+    *keymaster0_dev = NULL;
+    *keymaster1_dev = NULL;
+    *keymaster2_dev = NULL;
+    return rc;
+}
+#else
+static int keymaster_init(keymaster0_device_t **keymaster0_dev,
+                          keymaster1_device_t **keymaster1_dev)
+{
+    int rc;
+
+    const hw_module_t* mod;
+    rc = hw_get_module_by_class(KEYSTORE_HARDWARE_MODULE_ID, NULL, &mod);
+    if (rc) {
+        printf("could not find any keystore module\n");
+        goto err;
+    }
+
+    printf("keymaster module name is %s\n", mod->name);
+    printf("keymaster version is %d\n", mod->module_api_version);
+
+    *keymaster0_dev = NULL;
+    *keymaster1_dev = NULL;
     if (mod->module_api_version == KEYMASTER_MODULE_API_VERSION_1_0) {
         printf("Found keymaster1 module, using keymaster1 API.\n");
         rc = keymaster1_open(mod, keymaster1_dev);
@@ -227,12 +259,9 @@ static int keymaster_init(keymaster0_device_t **keymaster0_dev,
 err:
     *keymaster0_dev = NULL;
     *keymaster1_dev = NULL;
-    #ifndef OF_DISABLE_KEYMASTER2
-    *keymaster2_dev = NULL;
-    #endif
     return rc;
 }
-#endif //TW_KEYMASTER_MAX_API == 0
+#endif //TW_KEYMASTER_MAX_API
 
 #ifdef CONFIG_HW_DISK_ENCRYPTION
 static int scrypt_keymaster(const char *passwd, const unsigned char *salt,
@@ -434,7 +463,7 @@ static int keymaster_sign_object(struct crypt_mnt_ftr *ftr,
             SLOGI("Signing safely-padded object\n");
             break;
         default:
-            SLOGE("Unknown KDF type %d \n", ftr->kdf_type);
+            SLOGE("Unknown KDF type %d\n", ftr->kdf_type);
             return -1;
     }
 
@@ -443,12 +472,12 @@ static int keymaster_sign_object(struct crypt_mnt_ftr *ftr,
 #if TW_KEYMASTER_MAX_API >= 1
     keymaster0_device_t *keymaster0_dev = 0;
     keymaster1_device_t *keymaster1_dev = 0;
-    #ifndef OF_DISABLE_KEYMASTER2
+#if TW_KEYMASTER_MAX_API > 1
     keymaster2_device_t *keymaster2_dev = 0;
     if (keymaster_init(&keymaster0_dev, &keymaster1_dev, &keymaster2_dev)) {
-    #else
+#else
     if (keymaster_init(&keymaster0_dev, &keymaster1_dev)) {
-    #endif
+#endif
 #else
     keymaster_device_t *keymaster0_dev = 0;
     if (keymaster_init(&keymaster0_dev)) {
@@ -528,7 +557,7 @@ static int keymaster_sign_object(struct crypt_mnt_ftr *ftr,
         *signature_size = tmp_sig.data_length;
         rc = 0;
     }
-    #ifndef OF_DISABLE_KEYMASTER2
+#if TW_KEYMASTER_MAX_API > 1
     else if (keymaster2_dev) {
         keymaster_key_blob_t key = { ftr->keymaster_blob, ftr->keymaster_blob_size };
         keymaster_key_param_t params[] = {
@@ -605,7 +634,7 @@ static int keymaster_sign_object(struct crypt_mnt_ftr *ftr,
         *signature_size = tmp_sig.data_length;
         rc = 0;
     }
-    #endif // ifndef OF_DISABLE_KEYMASTER2
+#endif // TW_KEYMASTER_API > 1
 #endif // TW_KEYMASTER_API >= 1
 
     out:
@@ -1512,7 +1541,7 @@ static int test_mount_encrypted_fs(struct crypt_mnt_ftr* crypt_ftr,
   char tmp_mount_point[64];
   unsigned int orig_failed_decrypt_count;
   int rc = 0;
-  //int use_keymaster = 0;
+  int use_keymaster = 0;
   unsigned char* intermediate_key = 0;
   size_t intermediate_key_size = 0;
   int N = 1 << crypt_ftr->N_factor;
