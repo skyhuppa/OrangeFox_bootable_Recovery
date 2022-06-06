@@ -2,7 +2,7 @@
 	Copyright 2013 bigbiff/Dees_Troy TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-	Copyright (C) 2018-2021 OrangeFox Recovery Project
+	Copyright (C) 2018-2022 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -2601,8 +2601,11 @@ int GUIAction::togglebacklight(std::string arg __unused)
 int GUIAction::setbootslot(std::string arg)
 {
   operation_start("Set Boot Slot");
-  if (!simulate)
+  if (!simulate) {
+    if (PartitionManager.Find_Partition_By_Path("/vendor"))
+	PartitionManager.UnMount_By_Path("/vendor",true);
     PartitionManager.Set_Active_Slot(arg);
+  }
   else
     simulate_progress_bar();
   operation_end(0);
