@@ -342,6 +342,24 @@ endif
 ifeq ($(TW_INCLUDE_L_CRYPTO), true)
     TW_INCLUDE_CRYPTO := true
 endif
+
+ifeq ($(TW_INCLUDE_PYTHON),true)
+    #$(warning python3 support enabled on SDK $(PLATFORM_SDK_VERSION) on platform $(TARGET_ARCH).)
+    ifeq ($(wildcard external/python3/Android.mk),)
+        $(warning python3 repository not found! Either set TW_INCLUDE_PYTHON to false, or clone the repository.)
+        $(warning You can run: "git clone https://github.com/CaptainThrowback/android_external_python3.git -b android-9.0 external/python3")
+        $(error python3 repository not present; exiting)
+    endif
+
+    ifeq ($(shell test $(PLATFORM_SDK_VERSION) -lt 28; echo $$?),0)
+        $(warning Warning! python3 support on Android platform versions below 9.0 is untested!)
+    else
+        $(warning python3 support is experimental; test it very carefully.)
+    endif
+
+    TWRP_REQUIRED_MODULES += python3_twrp
+endif
+
 ifeq ($(TW_INCLUDE_CRYPTO), true)
     LOCAL_CFLAGS += -DTW_INCLUDE_CRYPTO
     ifeq ($(OF_USE_LEGACY_CRYPTO),1)

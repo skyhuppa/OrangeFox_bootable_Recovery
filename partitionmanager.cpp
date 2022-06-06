@@ -2,7 +2,7 @@
 	Copyright 2014 to 2017 TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-	Copyright (C) 2018-2020 OrangeFox Recovery Project
+	Copyright (C) 2018-2022 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -2225,10 +2225,20 @@ void TWPartitionManager::Parse_Users() {
 
 			// Attempt to get name of user. Fallback to user ID if this fails.
 			std::string path = "/data/system/users/" + to_string(userId) + ".xml";
-			if ((atoi(TWFunc::System_Property_Get("ro.build.version.sdk").c_str()) > 30) && TWFunc::Path_Exists(path)) {
-				if(TWFunc::IsBinaryXML(path))
-					user.userName = to_string(userId);
+			int converted = 0;
+			if (TWFunc::Get_Android_SDK_Version() > 30 && TWFunc::Path_Exists(path)) {
+				if(!TWFunc::Check_Xml_Format(path)) {
+					string oldpath = path;
+					if (TWFunc::abx_to_xml(path, path)) {
+						converted = 1;
+						LOGINFO("Android 12+: '%s' has been converted into plain text xml (for user %s).\n", oldpath.c_str(), user.userId.c_str());
+					}
+					else
+						converted = -1;
+				}
 			}
+			if (converted < 0)
+				user.userName = to_string(userId);
 			else {
 				char* userFile = PageManager::LoadFileToBuffer(path, NULL);
 				if (userFile == NULL) {
@@ -3685,12 +3695,18 @@ bool TWPartitionManager::Decrypt_Adopted() {
 
   	string path = "/data/system/storage.xml";
   	if (SDK > 30 && TWFunc::Path_Exists(path)) {
-      		if (TWFunc::IsBinaryXML(path)) {
+      	   if(!TWFunc::Check_Xml_Format(path)) {
+         	string oldpath = path;
+         	if (TWFunc::abx_to_xml(path, path)) {
+         		LOGINFO("Android 12+: '%s' has been converted into plain text xml (%s).\n", oldpath.c_str(), path.c_str());
+         	}
+         	else {
          		LOGINFO("Android 12+: '%s' is binary. Skipping adopted storage decryption.\n", path.c_str());
          		return false;
-      		}
-      		else
-      			LOGINFO("Android 12+: '%s' is not in binary format. Proceeding...\n", path.c_str());
+         	}
+      	   }
+      	   else
+      		LOGINFO("Android 12+: '%s' is not in binary format. Proceeding...\n", path.c_str());
   	}
 
 	LOGINFO("Decrypt adopted storage starting\n");
