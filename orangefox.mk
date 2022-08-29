@@ -442,4 +442,9 @@ endif
 ifeq ($(OF_SKIP_DECRYPTED_ADOPTED_STORAGE),1)
     LOCAL_CFLAGS += -DOF_SKIP_DECRYPTED_ADOPTED_STORAGE='"1"'
 endif
+
+# unblock block partitions before flashinh
+ifeq ($(OF_UNLOCK_BLOCK_PARTITIONS),1)
+    LOCAL_CFLAGS += -DOF_UNLOCK_BLOCK_PARTITIONS='"1"'
+endif
 #

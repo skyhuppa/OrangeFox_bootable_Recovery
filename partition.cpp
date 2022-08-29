@@ -2822,6 +2822,8 @@ bool TWPartition::Raw_Read_Write(PartitionSettings *part_settings) {
 	if (part_settings->progress)
 		part_settings->progress->SetPartitionSize(part_settings->total_restore_size);
 
+	PartitionManager.Unlock_Block_Partitions();
+
 	while (Remain > 0) {
 		if (Remain < RW_Block_Size)
 			bs = (ssize_t)(Remain);

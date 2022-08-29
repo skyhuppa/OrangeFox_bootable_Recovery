@@ -265,6 +265,8 @@ int TWPartitionManager::Process_Fstab(string Fstab_Filename, bool Display_Error,
 			(*iter)->Has_Android_Secure = false;
 	}
 
+	Unlock_Block_Partitions();
+
 	if (!datamedia && !settings_partition && Find_Partition_By_Path("/sdcard") == NULL && Find_Partition_By_Path("/internal_sd") == NULL && Find_Partition_By_Path("/internal_sdcard") == NULL && Find_Partition_By_Path("/emmc") == NULL) {
 		// Attempt to automatically identify /data/media emulated storage devices
 		TWPartition* Dat = Find_Partition_By_Path("/data");
@@ -3454,6 +3456,8 @@ bool TWPartitionManager::Flash_Image(string& path, string& filename) {
 
 	full_filename = path + "/" + filename;
 
+	Unlock_Block_Partitions();
+
 	gui_msg("image_flash_start=[IMAGE FLASH STARTED]");
 	gui_msg(Msg("img_to_flash=Image to flash: '{1}'")(full_filename));
 
@@ -4955,4 +4959,31 @@ int TWPartitionManager::Set_FDE_Encrypt_Status(void) {
 	return 0;
 }
 
+void TWPartitionManager::Unlock_Block_Partitions() {
+#ifdef OF_UNLOCK_BLOCK_PARTITIONS
+	int fd, OFF = 0;
+
+	const std::string block_path = "/dev/block/";
+	DIR* d = opendir(block_path.c_str());
+	if (d != NULL) {
+		struct dirent* de;
+		while ((de = readdir(d)) != NULL) {
+			if (de->d_type == DT_BLK) {
+				std::string block_device = block_path + de->d_name;
+				// LOGINFO("block_Device: %s\n", block_device.c_str()); // DJ9 - creates too much noise in the log
+				if ((fd = open(block_device.c_str(), O_RDONLY | O_CLOEXEC)) < 0) {
+					LOGERR("unable to open block device %s: %s\n", block_device.c_str(), strerror(errno));
+					continue;
+				}
+				if (ioctl(fd, BLKROSET, &OFF) == -1) {
+					LOGERR("Unable to unlock %s: %s\n", block_device.c_str());
+					continue;
+				}
+				close(fd);
+			}
+		}
+		closedir(d);
+	}
+#endif
+}
 //*

@@ -407,6 +407,7 @@ public:
 	bool Repack_Images(const std::string& Target_Image, const struct Repack_Options_struct& Repack_Options); // Repacks the boot image with a new kernel or a new ramdisk
 	int Set_FDE_Encrypt_Status(); 						 // Sets encryption state for FDE devices (ro.crypto.state and ro.crypto.type)
 	std::vector<users_struct>* Get_Users_List();                              // Returns pointer to list of users
+	void Unlock_Block_Partitions();                                           // Unlock all block devices
 
 #ifdef TW_HAS_MTP
 	bool is_MTP_Enabled(void);						// returns whether MTP is already enabled
