@@ -2,7 +2,7 @@
 	Copyright 2013 bigbiff/Dees_Troy TeamWin
 	This file is part of TWRP/TeamWin Recovery Project.
 
-	Copyright (C) 2018-2021 OrangeFox Recovery Project
+	Copyright (C) 2018-2022 OrangeFox Recovery Project
 	This file is part of the OrangeFox Recovery Project.
 
 	TWRP is free software: you can redistribute it and/or modify
@@ -1162,7 +1162,7 @@ int GUIAction::queuezip(std::string arg __unused)
 void GUIAction::find_magisk(){ //[f/d]
   int found = 0;
   for (int i = 0; i < zip_queue_index; i++)
-    if (zip_queue[i] == Fox_Home_Files + "/Magisk.zip")
+    if (zip_queue[i] == Fox_Home_Files + "/" + FOX_MAGISK_ZIP_INSTALLER)
       found = 1;
   DataManager::SetValue("of_magisk_in_queue", found);
 }
