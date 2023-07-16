@@ -23,8 +23,8 @@ LOCAL_CFLAGS += -Wno-unused-parameter -Wno-unused-function -Wno-unused-variable
 
 ifneq ($(FOX_VERSION),)
     LOCAL_CFLAGS += -DFOX_VERSION='"$(FOX_VERSION)"'
-else
-    LOCAL_CFLAGS += -DFOX_VERSION='"Unofficial"'
+# else
+#    LOCAL_CFLAGS += -DFOX_VERSION='"Unofficial"'
 endif
 
 ifeq ($(FOX_VARIANT),)
